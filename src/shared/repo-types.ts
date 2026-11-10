@@ -94,6 +94,8 @@ export type Repo = {
   externalWorktreeDiscoverySuppressedAt?: number
   /** Relative paths to APFS-clone on macOS when possible, otherwise symlink, into new worktrees. Absent/empty creates none. */
   symlinkPaths?: string[]
+  /** Nested repos (by id) picked for the last container worktree create; preselected on the next one. */
+  nestedWorktreeRepoIds?: string[]
   /** Durable sidebar-only repo organization. Execution remains repo-scoped. */
   projectGroupId?: string | null
   /** User-authored ordering inside the project group or ungrouped bucket. */

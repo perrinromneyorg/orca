@@ -1,3 +1,4 @@
+import { createNestedRepoWorktreesForCli } from './worktree-create-nested'
 // Use agent.launch for surface/model/effort; older hosts fall back to the create startup terminal.
 
 import {
@@ -43,6 +44,8 @@ export async function createWorktreeWithAgent(args: {
   rawArgs?: readonly string[]
 }): Promise<void> {
   const { client, flags, create, launch, json, rawArgs } = args
+  const afterCreate = (worktree: RuntimeWorktreeRecord) =>
+    createNestedRepoWorktreesForCli(client, worktree, flags, json)
   const capabilities = await getAgentLaunchCapabilities(client)
   if (
     !capabilities?.includes(AGENT_LAUNCH_LOCAL_PRESENTATION_RUNTIME_CAPABILITY) ||
@@ -83,6 +86,7 @@ export async function createWorktreeWithAgent(args: {
       result: await withFolderSetupSupportWarning(client, response.result, create)
     }
     printHookWarning(created.result, json)
+    await afterCreate(created.result.worktree)
     printLineageSummary(created.result, json)
     printResult(created, json, formatWorktreeShow)
     return
@@ -101,6 +105,9 @@ export async function createWorktreeWithAgent(args: {
     launch.operationId !== undefined
   )
   const worktree = await showLaunchedWorktree(client, launched.result.worktreeId)
+  if (worktree) {
+    await afterCreate(worktree)
+  }
   const setupWarning = await folderSetupUnsupportedWarning(
     client,
     launched.result.worktreeId,

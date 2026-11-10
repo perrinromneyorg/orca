@@ -6,7 +6,7 @@ import { isPluginPanelTabKey } from '../../../../shared/plugins/manifest/plugin-
 
 const FileExplorer = lazy(() => import('./file-explorer/panel/FileExplorer'))
 const FolderWorkspaceSourceControl = lazy(() => import('./FolderWorkspaceSourceControlPanel'))
-const SourceControl = lazy(() => import('./source-control/panel/SourceControl'))
+const NestedRepoSourceControl = lazy(() => import('./NestedRepoSourceControlPanel'))
 const ChecksPanel = lazy(() => import('./checks-panel/ChecksPanel'))
 const PortsPanel = lazy(() => import('./PortsPanel'))
 const AiVaultSidebarPanel = lazy(() => import('./ai-vault/panel/AiVaultSidebarPanel'))
@@ -44,7 +44,7 @@ export function RightSidebarPanelContent({
           (isFolderWorkspace ? (
             rightSidebarOpen && <FolderWorkspaceSourceControl />
           ) : (
-            <SourceControl />
+            <NestedRepoSourceControl />
           ))}
         {effectiveTab === 'checks' && <ChecksPanel />}
         {/* SSH forwarding needs raw ports.detect data absent from the workspace-scoped status popover. */}

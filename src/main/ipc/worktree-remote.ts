@@ -6,6 +6,8 @@ import { worktreeCreateGit } from '../git/worktrees/creation/worktree-create-git
 import { getStoredRepoExecutionHostId } from '../workspaces/execution-host/repo-execution-host'
 import type { BrowserWindow } from 'electron'
 import { existsSync } from 'node:fs'
+import { join as joinPath } from 'node:path'
+import { resolveNestedWorktreePlacement } from '../../shared/worktree/nested-worktree-placement'
 import { randomUUID } from 'node:crypto'
 import type { Store } from '../persistence/loading-store/store'
 import type { GitAdmissionTier } from '../../shared/rpc-contract/git-admission-tier-params'
@@ -1186,6 +1188,15 @@ async function performLocalWorktreeCreate(
     }
   }
   const workspaceRoot = await computeWorkspaceRootAsync(repo.path, worktreePathSettings)
+  const nestedPlacement = args.nestedUnder
+    ? resolveNestedWorktreePlacement(args.nestedUnder, joinPath)
+    : null
+  if (
+    nestedPlacement &&
+    (!store.getRepo(nestedPlacement.containerRepoId) || !existsSync(nestedPlacement.containerPath))
+  ) {
+    throw new Error('The container workspace for this nested repo no longer exists.')
+  }
 
   // Hook validation is ref-independent and can overlap required tracking-base refresh.
   const primarySetupScript = getEffectiveHooks(repo)?.scripts.setup
@@ -1287,6 +1298,16 @@ async function performLocalWorktreeCreate(
     selectedReuseBranchName = branchName
   }
   const pathIsAvailable = (): boolean => {
+    if (nestedPlacement) {
+      // A nested repo's path is fixed by its container; a suffixed sibling would break the mirrored layout.
+      worktreePath = nestedPlacement.worktreePath
+      if (existsSync(worktreePath)) {
+        throw new WorktreeCreateCollisionError(
+          `"${nestedPlacement.relativePath}" already exists in this workspace.`
+        )
+      }
+      return pathClaim.claim(worktreePath)
+    }
     worktreePath = ensurePathWithinWorkspace(
       computeWorktreePath(effectiveSanitizedName, repo.path, worktreePathSettings, workspaceRoot),
       workspaceRoot
@@ -1687,6 +1708,14 @@ async function performLocalWorktreeCreate(
       ? { preserveBranchOnDelete: true }
       : {}),
     ...(configuredPushTarget ? { pushTarget: configuredPushTarget } : {}),
+    ...(nestedPlacement
+      ? {
+          nestedIn: {
+            containerWorktreeId: nestedPlacement.containerWorktreeId,
+            relativePath: nestedPlacement.relativePath
+          }
+        }
+      : {}),
     ...resolveWorktreeCreateDisplayNameMeta(
       requestedDisplayName,
       branchName,

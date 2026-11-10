@@ -59,6 +59,7 @@ export type RepositoryApi = {
         | 'worktreeBaseRef'
         | 'worktreeBasePath'
         | 'kind'
+        | 'nestedWorktreeRepoIds'
         | 'issueSourcePreference'
         | 'defaultJiraProject'
         | 'externalWorktreeVisibilityPromptDismissedAt'

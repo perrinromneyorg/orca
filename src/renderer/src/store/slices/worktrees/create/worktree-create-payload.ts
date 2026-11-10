@@ -44,6 +44,8 @@ export type CreateWorktreeCallOptions = {
   parentWorktreeId?: string
   /** Saved with the workspace, so a task id in it nests the workspace at creation. */
   note?: string
+  /** Check out inside a container repo's worktree; see CreateWorktreeArgs.nestedUnder. */
+  nestedUnder?: CreateWorktreeArgs['nestedUnder']
   provisionedRoot?: {
     runtimeId: string
     executionHostId: ExecutionHostId
@@ -122,6 +124,7 @@ function sharedCreateFields(
     ...(attempt.parentWorkspace ? { parentWorkspace: attempt.parentWorkspace } : {}),
     ...(attempt.crossStoreParent ? { crossStoreParent: attempt.crossStoreParent } : {}),
     ...(options?.note ? { comment: options.note } : {}),
+    ...(options?.nestedUnder ? { nestedUnder: options.nestedUnder } : {}),
     ...(request.workspaceStatus !== undefined ? { workspaceStatus: request.workspaceStatus } : {}),
     ...(request.linkedGitLabMR !== undefined ? { linkedGitLabMR: request.linkedGitLabMR } : {}),
     ...(request.linkedGitLabIssue !== undefined

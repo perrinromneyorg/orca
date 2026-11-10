@@ -27,6 +27,7 @@ import type { TuiAgent } from '../../../shared/agent-launch/catalog/tui-agent'
 import { NewWorkspaceComposerAdvancedSection } from './new-workspace/NewWorkspaceComposerAdvancedSection'
 import { NewWorkspaceComposerAgentSection } from './new-workspace/NewWorkspaceComposerAgentSection'
 import { NewWorkspaceComposerFooter } from './new-workspace/NewWorkspaceComposerFooter'
+import { NewWorkspaceComposerNestedRepos } from './new-workspace/NewWorkspaceComposerNestedRepos'
 import { NewWorkspaceComposerNameSection } from './new-workspace/NewWorkspaceComposerNameSection'
 import { NewWorkspaceComposerProjectSection } from './new-workspace/NewWorkspaceComposerProjectSection'
 import {
@@ -317,6 +318,12 @@ export default function NewWorkspaceComposerCard(
           defaultTuiAgent={defaultTuiAgent}
           handleSetDefaultAgent={handleSetDefaultAgent}
         />
+        {selectedRepoIsGit ? (
+          <NewWorkspaceComposerNestedRepos
+            repoId={repoId}
+            executionHostId={selectedRepoExecutionHostId}
+          />
+        ) : null}
         <NewWorkspaceComposerAdvancedSection
           {...props}
           onSparseEditingChange={setSparseEditing}

@@ -1,5 +1,6 @@
 import { prepareWorktreeCreationHooks, setupCreateArgs } from './worktree-creation-hook-preparation'
 import { useAppStore } from '@/store/index'
+import { createPickedNestedRepoWorktrees } from '@/components/right-sidebar/nested-repo-worktree-create'
 import { activateAndRevealWorktree } from '@/lib/workspace/activation/worktree-activation'
 import type { ActivateAndRevealResult } from '@/lib/workspace/activation/worktree-activation-outcome'
 import { ensureWorktreeHasInitialTerminal } from '@/lib/workspace/activation/initial-surface/worktree-initial-terminal-seeding'
@@ -153,6 +154,7 @@ export async function executeWorktreeCreation(
   // The VM's checkout is now this workspace (or its project), so the sidebar may list it.
   releaseVmCreateCheckout(creationId)
   await attachEphemeralVmRuntimeToWorkspace(preparedRequest, worktree.id)
+  await createPickedNestedRepoWorktrees(worktree, creationHostId)
 
   const backendSpawned = result.startupTerminal?.spawned === true
   const windowStartup = windowStartupAfterCreate(creationId, preparedRequest, result)

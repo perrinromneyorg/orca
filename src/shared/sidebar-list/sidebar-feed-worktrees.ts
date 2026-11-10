@@ -49,6 +49,7 @@ type FeedRowFields = Pick<
     Pick<
       WorkspaceRow,
       | 'isMainWorktree'
+      | 'nestedIn'
       | 'isUnread'
       | 'instanceId'
       | 'lineage'
@@ -106,6 +107,7 @@ function readFeedRow(
     linkedLinearIssue: null,
     isMainWorktree: row.isMainWorktree ?? false,
     isArchived: row.isArchived,
+    ...(row.nestedIn ? { nestedIn: row.nestedIn } : {}),
     isPinned: row.isPinned,
     isUnread: row.isUnread ?? false,
     workspaceStatus: row.workspaceStatus,

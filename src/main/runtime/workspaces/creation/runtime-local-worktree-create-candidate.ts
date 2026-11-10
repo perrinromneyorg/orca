@@ -1,4 +1,6 @@
+import { join as joinPath } from 'node:path'
 import type { Repo } from '../../../../shared/repo-types'
+import { resolveNestedWorktreePlacement } from '../../../../shared/worktree/nested-worktree-placement'
 import { WorktreeCreateCollisionError } from '../../../../shared/new-workspace/worktree-create-collision'
 import type { CreateWorktreeArgs } from '../../../../shared/worktree/create-types'
 import type { getPRForBranch } from '../../../github/client/lookup/get-pr-for-branch'
@@ -110,7 +112,23 @@ export async function resolveRuntimeLocalWorktreeCreateCandidate(args: {
     checkoutExistingBranch = explicitReuse.checkoutExistingBranch
     selectedReuseBranchName = branchName
   }
+  const nestedPlacement = args.request.nestedUnder
+    ? resolveNestedWorktreePlacement(args.request.nestedUnder, joinPath)
+    : null
+  if (nestedPlacement && !(await runtimePathExists(nestedPlacement.containerPath))) {
+    throw new Error('The container workspace for this nested repo no longer exists.')
+  }
   const pathIsAvailable = async (): Promise<boolean> => {
+    if (nestedPlacement) {
+      // A nested repo's path is fixed by its container; a suffixed sibling would break the mirrored layout.
+      worktreePath = nestedPlacement.worktreePath
+      if (await runtimePathExists(worktreePath)) {
+        throw new WorktreeCreateCollisionError(
+          `"${nestedPlacement.relativePath}" already exists in this workspace.`
+        )
+      }
+      return args.pathClaim.claim(worktreePath)
+    }
     worktreePath = ensurePathWithinWorkspace(
       computeWorktreePath(effectiveSanitizedName, args.repo.path, args.worktreePathSettings),
       args.workspaceRoot

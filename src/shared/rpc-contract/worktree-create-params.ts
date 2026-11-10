@@ -90,6 +90,7 @@ export const WorktreeCreate = z
     // Explicit targets opt into all-surface reveal.
     navigation: z.enum(RUNTIME_NAVIGATION_TARGETS).optional(),
     parentWorkspace: OptionalString,
+    nestedUnder: z.object({ containerWorktreeId: z.string(), relativePath: z.string() }).optional(),
     // App-selected parents are manual; absent retains older clients’ CLI provenance.
     parentWorkspaceOrigin: z.literal('manual').optional(),
     envParentWorkspace: OptionalString,

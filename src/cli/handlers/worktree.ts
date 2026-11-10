@@ -16,6 +16,7 @@ import {
   annotateOmittedHostScope,
   type WithAnnotatedHostScope
 } from '../omitted-host-scope-selectors'
+import { withNestedRepoWorktrees } from './worktree-create-nested'
 import { RuntimeClientError } from '../runtime-client'
 import {
   getOptionalPositiveIntegerFlag,
@@ -214,7 +215,8 @@ export const WORKTREE_HANDLERS: Record<string, CommandHandler> = {
     }
     printHookWarning(created.result, json)
     printLineageSummary(created.result, json)
-    printResult(created, json, formatWorktreeShow)
+    const output = await withNestedRepoWorktrees(client, created, flags, json)
+    printResult(output, json, formatWorktreeShow)
   },
   'worktree set': async ({ flags, client, cwd, json }) => {
     assertWorktreeParentFlagsCompatible(

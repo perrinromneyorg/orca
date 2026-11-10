@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, rm, symlink } from 'node:fs/promises'
+import { mkdtemp, mkdir, rm, symlink, writeFile } from 'node:fs/promises'
 import type * as FsPromisesModule from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -103,4 +103,23 @@ describe('scanNestedRepos', () => {
       expect(result.repos).toEqual([])
     }
   )
+})
+
+describe('scanNestedRepos inside a Git repo', () => {
+  it('lists repos the container ignores, one level down, without descending into them', async () => {
+    const root = await tempRoot()
+    await makeGitRepo(root)
+    await writeFile(join(root, '.gitignore'), 'api/\nweb/\nnode_modules\n')
+    await makeGitRepo(join(root, 'api'))
+    await makeGitRepo(join(root, 'api', 'vendored'))
+    await makeGitRepo(join(root, 'web'))
+    await makeGitRepo(join(root, 'node_modules', 'pkg'))
+    await makeGitRepo(join(root, 'tools', 'deep'))
+    vi.mocked(isGitRepoAsync).mockResolvedValue(true)
+
+    const scan = await scanNestedRepos({ path: root, options: { insideGitRepo: true } })
+
+    expect(scan.selectedPathKind).toBe('git_repo')
+    expect(scan.repos.map((repo) => repo.displayName)).toEqual(['api', 'web'])
+  })
 })

@@ -74,6 +74,7 @@ export function buildManagedWorktreeCreateArgs(
       ? { localBaseRefSuggestionDismissed: params.localBaseRefSuggestionDismissed }
       : {}),
     sparseCheckout: params.sparseCheckout,
+    ...(params.nestedUnder ? { nestedUnder: params.nestedUnder } : {}),
     pushTarget: params.pushTarget,
     runHooks: params.runHooks === true,
     activate: params.activate === true,

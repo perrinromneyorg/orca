@@ -18,6 +18,10 @@ import { getHostedReviewCacheKey } from '@/store/slices/hosted-review/hosted-rev
 import type { GitBranchChangeEntry } from '../../../../../../shared/git/diff/git-diff-compare-types'
 import type { GitStatusEntry } from '../../../../../../shared/git/status/git-status-types'
 import { isFolderRepo } from '../../../../../../shared/repo-kind'
+import {
+  getNestedRepos,
+  withoutNestedRepoRows
+} from '../../../../../../shared/worktree/nested-repo-worktrees'
 import { getRepoExecutionHostId } from '../../../../../../shared/execution-host'
 import {
   selectReviewCacheData,
@@ -85,10 +89,15 @@ export function useSourceControlWorktreeContext() {
   const activeRepoExecutionHostId = activeRepo?.executionHostId ?? null
   const gitIdentityDisplay = activeWorktree ? getWorktreeGitIdentityDisplay(activeWorktree) : null
   const branchName = gitIdentityDisplay?.kind === 'branch' ? gitIdentityDisplay.branchName : ''
-  const entries = useSourceControlState((s) =>
+  const rawEntries = useSourceControlState((s) =>
     activeWorktreeId
       ? (s.gitStatusByWorktree[activeWorktreeId] ?? EMPTY_GIT_STATUS_ENTRIES)
       : EMPTY_GIT_STATUS_ENTRIES
+  )
+  const repos = useSourceControlState((s) => s.repos)
+  const entries = useMemo(
+    () => withoutNestedRepoRows(rawEntries, activeRepo ? getNestedRepos(activeRepo, repos) : []),
+    [rawEntries, activeRepo, repos]
   )
   const activeGitStatusHead = useSourceControlState((s) =>
     activeWorktreeId ? (s.gitStatusHeadByWorktree?.[activeWorktreeId] ?? null) : null

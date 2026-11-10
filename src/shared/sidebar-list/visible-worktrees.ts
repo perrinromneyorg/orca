@@ -1,5 +1,6 @@
 import type { WorktreeLineage } from '../worktree/lineage-types'
 import type { Worktree } from '../worktree/types'
+import { isNestedRepoWorktree } from '../worktree/nested-repo-worktrees'
 import { getWorktreeHostIdentity } from '../worktree/host-qualified-identity'
 import {
   filterWorkspaceRows,
@@ -46,14 +47,20 @@ export function selectVisibleSidebarWorktrees({
   // Keep valid nonarchived ancestors despite ordinary filters so children retain their hierarchy.
   const selectedRepoIds = filterRepoIds.length > 0 ? new Set(filterRepoIds) : null
 
-  let all = filterWorkspaceRows(rows, filters, facts)
+  // Nested-repo checkouts live behind their container's row and Source Control cards.
+  let all = filterWorkspaceRows(
+    rows.filter((worktree) => !isNestedRepoWorktree(worktree)),
+    filters,
+    facts
+  )
 
   if (forcedVisibleWorktreeIds && forcedVisibleWorktreeIds.length > 0) {
     const includedIds = new Set(all.map((worktree) => worktree.id))
     for (const worktreeId of forcedVisibleWorktreeIds) {
-      const worktree = includedIds.has(worktreeId)
+      const candidate = includedIds.has(worktreeId)
         ? undefined
-        : [...ancestorByIdentity.values()].find((candidate) => candidate.id === worktreeId)
+        : [...ancestorByIdentity.values()].find((row) => row.id === worktreeId)
+      const worktree = candidate && !isNestedRepoWorktree(candidate) ? candidate : undefined
       if (worktree) {
         includedIds.add(worktreeId)
         all.push(worktree)

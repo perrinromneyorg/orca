@@ -88,6 +88,13 @@ export type WorkspaceStatusDefinition = {
   icon?: string
 }
 
+/** A nested-repo worktree checked out inside a container repo's worktree. */
+export type WorktreeNestedIn = {
+  containerWorktreeId: string
+  /** POSIX-separated path of this checkout relative to the container worktree. */
+  relativePath: string
+}
+
 export type Worktree = {
   id: string // `${repoId}::${path}`
   instanceId?: string
@@ -151,6 +158,8 @@ export type Worktree = {
   firstAgentMessageRenameError?: string | null
   sparseDirectories?: string[]
   sparseBaseRef?: string
+  /** Set when Orca created this checkout inside a container worktree; hides it behind the container. */
+  nestedIn?: WorktreeNestedIn
   /** Saved preset identity; clear when refresh reports the worktree is no longer sparse. */
   sparsePresetId?: string
   /** Intended create base for stale-base probes. Persisted metadata, not UI drift state. */

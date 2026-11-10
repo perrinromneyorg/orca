@@ -102,6 +102,7 @@ export function mergeWorktree(
           sparsePresetId: meta?.sparsePresetId
         }
       : {}),
+    ...(meta?.nestedIn !== undefined ? { nestedIn: meta.nestedIn } : {}),
     ...(meta?.baseRef !== undefined ? { baseRef: meta.baseRef } : {}),
     ...(meta?.pushTarget !== undefined ? { pushTarget: meta.pushTarget } : {}),
     ...(meta?.priorWorktreeIds !== undefined ? { priorWorktreeIds: meta.priorWorktreeIds } : {}),

@@ -6,6 +6,7 @@ import {
   MoreHorizontal,
   RefreshCw,
   Settings2,
+  Trash2,
   Unlink
 } from 'lucide-react'
 import type { Worktree } from '../../../../../../shared/worktree/types'
@@ -22,6 +23,7 @@ import {
 import { useTranslate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store'
 import { unnestWorktrees } from '../../../sidebar/workspace-actions/parenting/worktree-unnest'
+import { runWorktreeDelete } from '../../../sidebar/workspace-actions/deletion/delete-worktree-flow'
 import { useSourceControlScopeOwner } from './worktree-scope'
 
 type PanelActions = {
@@ -118,7 +120,28 @@ export function SourceControlHeaderOverflowMenu({
             ) : null}
           </>
         ) : null}
-        {ownerWorktree ? (
+        {ownerWorktree?.nestedIn ? (
+          <>
+            {panelActions ? <DropdownMenuSeparator /> : null}
+            {/* Nested checkouts have no sidebar row, so their card is where they are deleted. */}
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() =>
+                runWorktreeDelete(
+                  ownerWorktree.id,
+                  ownerWorktree.hostId ? { expectedHostId: ownerWorktree.hostId } : {}
+                )
+              }
+            >
+              <Trash2 className="size-3.5" />
+              {t(
+                'auto.components.right.sidebar.SourceControl.removeNestedWorktree',
+                'Remove nested worktree'
+              )}
+              …
+            </DropdownMenuItem>
+          </>
+        ) : ownerWorktree && scopeOwner?.placementWorkspaceId.startsWith('folder:') !== false ? (
           <>
             {panelActions ? <DropdownMenuSeparator /> : null}
             {/* Same unlink as the sidebar's Parent & Children menu; the worktree itself stays. */}

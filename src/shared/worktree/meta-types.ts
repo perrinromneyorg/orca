@@ -8,7 +8,8 @@ import type {
   WorkspaceCreatorProvenance,
   WorkspaceLinkedItem,
   WorkspaceAttachment,
-  WorkspaceStatus
+  WorkspaceStatus,
+  WorktreeNestedIn
 } from './types'
 import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
 import type { OrcaWorkspaceLayout } from '../global-settings-types'
@@ -77,6 +78,8 @@ export type WorktreeMeta = {
   sparseDirectories?: string[]
   sparseBaseRef?: string
   sparsePresetId?: string
+  /** See {@link Worktree.nestedIn}. */
+  nestedIn?: WorktreeNestedIn
   /** Intended create base for stale-base probes. Persisted metadata, not UI drift state. */
   baseRef?: string
   /** True when Orca checked out a pre-existing local branch that delete must not prune. */

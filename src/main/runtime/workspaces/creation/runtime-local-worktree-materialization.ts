@@ -89,6 +89,14 @@ export async function materializeRuntimeLocalWorktree<T>(args: {
         ? { preserveBranchOnDelete: true }
         : {}),
       ...(configuredPushTarget ? { pushTarget: configuredPushTarget } : {}),
+      ...(request.nestedUnder
+        ? {
+            nestedIn: {
+              containerWorktreeId: request.nestedUnder.containerWorktreeId,
+              relativePath: request.nestedUnder.relativePath.replace(/\\/g, '/')
+            }
+          }
+        : {}),
       ...(sparseDirectories.length > 0
         ? {
             sparseDirectories,

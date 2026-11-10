@@ -71,6 +71,8 @@ export const WorkspaceRowSchema = z.object({
   workspaceLineage: WorkspaceLineageEdgeSchema,
   isPinned: z.boolean(),
   isArchived: z.boolean(),
+  /** Older hosts omit it; set rows stay behind their container (nested-repo-worktrees.ts). */
+  nestedIn: z.object({ containerWorktreeId: z.string(), relativePath: z.string() }).optional(),
   isUnread: z.boolean(),
   workspaceStatus: z.string(),
   comment: z.string(),
@@ -144,6 +146,7 @@ function toWorkspaceRow(
     ...(workspaceLineage !== undefined ? { workspaceLineage } : {}),
     isPinned: worktree.isPinned,
     isArchived: worktree.isArchived,
+    ...(worktree.nestedIn ? { nestedIn: worktree.nestedIn } : {}),
     isUnread: worktree.isUnread,
     workspaceStatus: worktree.workspaceStatus ?? DEFAULT_WORKSPACE_STATUS_ID,
     comment: worktree.comment,

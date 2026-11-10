@@ -8,6 +8,7 @@ import {
   isIgnoredNestedRepoDirectory,
   normalizeNestedRepoScanOptions,
   readNestedRepoGitignoreRules,
+  shouldSkipDirectory,
   type NestedRepoDirectoryEntry,
   type NestedRepoScanFilesystem,
   type TraversalFolder
@@ -156,7 +157,7 @@ export async function scanNestedRepos(args: {
     args.onProgress?.(buildResult('non_git_folder'))
   }
 
-  if (await filesystem.isSelectedPathGitRepo(args.path)) {
+  if (!options.insideGitRepo && (await filesystem.isSelectedPathGitRepo(args.path))) {
     return buildResult('git_repo')
   }
   if (noteAbort()) {
@@ -227,10 +228,19 @@ export async function scanNestedRepos(args: {
         break
       }
       const childSegments = [...currentFolder.segments, name]
+      const childPath = filesystem.joinPath(currentFolder.path, name)
       if (isIgnoredNestedRepoDirectory(name, childSegments, currentIgnoreRules)) {
+        // A container repo usually ignores its nested repos; still list them, never descend.
+        if (
+          options.insideGitRepo &&
+          !shouldSkipDirectory(name, currentFolder.depth) &&
+          (await filesystem.hasGitMarker(childPath))
+        ) {
+          repos.push({ path: childPath, displayName: name, depth: currentFolder.depth + 1 })
+          emitProgress()
+        }
         continue
       }
-      const childPath = filesystem.joinPath(currentFolder.path, name)
       // Filesystem markers avoid per-directory Git spawns, especially over SSH.
       const childHasGitMarker = await filesystem.hasGitMarker(childPath)
       if (noteAbort()) {
@@ -247,7 +257,8 @@ export async function scanNestedRepos(args: {
         continue
       }
       // Breadth-first traversal spends the bounded scan on nearby siblings before deep branches.
-      if (currentFolder.depth < options.maxDepth) {
+      // Inside a Git repo, depth counts repo levels as VS Code does: 1 means direct children only.
+      if (currentFolder.depth + (options.insideGitRepo ? 1 : 0) < options.maxDepth) {
         foldersToTraverse.push({
           path: childPath,
           depth: currentFolder.depth + 1,
@@ -258,5 +269,5 @@ export async function scanNestedRepos(args: {
     }
   }
 
-  return buildResult('non_git_folder')
+  return buildResult(options.insideGitRepo ? 'git_repo' : 'non_git_folder')
 }

@@ -67,7 +67,8 @@ export const PROJECT_GROUP_METHODS = [
     name: 'projectGroup.scanNested',
     permission: 'workspace',
     params: ProjectGroupScanNested,
-    handler: async (params, { runtime }) => runtime.scanNestedRepos(params.path)
+    handler: async (params, { runtime }) =>
+      runtime.scanNestedRepos(params.path, { insideGitRepo: params.insideGitRepo === true })
   }),
   defineMethod({
     name: 'projectGroup.importNested',

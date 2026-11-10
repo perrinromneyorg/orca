@@ -58,6 +58,7 @@ export function createRepoUpdateSchema<T extends Readonly<Record<string, z.ZodTy
       worktreeBasePath: OptionalString,
       kind: z.enum(['git', 'folder']).optional(),
       symlinkPaths: z.array(z.string()).optional(),
+      nestedWorktreeRepoIds: z.array(z.string()).optional(),
       dictationTerms: z.unknown().transform(normalizeDictationTerms).optional(),
       issueSourcePreference: z.enum(['auto', 'upstream', 'origin']).optional(),
       defaultJiraProject: z.unknown().optional().transform(normalizeJiraProjectReference),

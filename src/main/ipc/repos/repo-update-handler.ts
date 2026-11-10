@@ -46,6 +46,7 @@ export function registerRepoUpdateHandler(mainWindow: BrowserWindow, store: Stor
             | 'worktreeBasePath'
             | 'kind'
             | 'symlinkPaths'
+            | 'nestedWorktreeRepoIds'
             | 'dictationTerms'
             | 'issueSourcePreference'
             | 'forkSyncMode'
@@ -110,6 +111,12 @@ export function registerRepoUpdateHandler(mainWindow: BrowserWindow, store: Stor
         const v = updates.symlinkPaths as unknown
         if (!Array.isArray(v) || !v.every((e) => typeof e === 'string')) {
           delete updates.symlinkPaths
+        }
+      }
+      if ('nestedWorktreeRepoIds' in updates && updates.nestedWorktreeRepoIds !== undefined) {
+        const v = updates.nestedWorktreeRepoIds as unknown
+        if (!Array.isArray(v) || !v.every((e) => typeof e === 'string')) {
+          delete updates.nestedWorktreeRepoIds
         }
       }
       if ('dictationTerms' in updates) {

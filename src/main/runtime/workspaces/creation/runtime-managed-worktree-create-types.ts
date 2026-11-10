@@ -2,6 +2,7 @@ import type { SessionOptionValue } from '../../../../shared/native-chat/input/na
 import type { RuntimeTerminalCreate } from '../../../../shared/runtime-terminal-create-contract'
 import type { AgentLaunchPreferences } from '../../../../shared/agent-session/agent-session-host-authority'
 import type { CreateWorktreeArgs } from '../../../../shared/worktree/create-types'
+import type { WorktreeNestedIn } from '../../../../shared/worktree/types'
 import type {
   AutomationWorkspaceProvenance,
   CliWorkspaceProvenance,
@@ -56,6 +57,8 @@ export type RuntimeManagedWorktreeCreateArgs = {
   refreshLocalBaseRefOnWorktreeCreate?: boolean
   localBaseRefSuggestionDismissed?: boolean
   sparseCheckout?: { directories: string[]; presetId?: string }
+  /** See CreateWorktreeArgs.nestedUnder. */
+  nestedUnder?: WorktreeNestedIn
   pushTarget?: GitPushTarget
   runHooks?: boolean
   activate?: boolean

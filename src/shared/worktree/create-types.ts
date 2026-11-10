@@ -11,7 +11,8 @@ import type {
   WorkspaceLinkedItem,
   WorkspaceAttachment,
   WorkspaceStatus,
-  Worktree
+  Worktree,
+  WorktreeNestedIn
 } from './types'
 import type {
   CrossStoreParentRef,
@@ -143,6 +144,8 @@ export type CreateWorktreeArgs = {
   manualOrder?: number
   /** Parent workspace for in-app creates launched from a folder workspace. */
   parentWorkspace?: WorkspaceKey
+  /** Check this repo out inside another repo's worktree at a fixed relative path (nested repos). */
+  nestedUnder?: WorktreeNestedIn
   /** The workspace note; a task id in it names the parent the same way it does for a CLI create. */
   comment?: string
   /** A parent in another Orca store, named by that store's verified installationId (buildCrossStoreParentRef). */

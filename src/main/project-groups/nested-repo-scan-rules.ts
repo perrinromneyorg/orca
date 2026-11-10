@@ -37,6 +37,7 @@ export type NormalizedNestedRepoScanOptions = {
   maxDepth: number
   maxRepos: number
   timeoutMs: number | null
+  insideGitRepo: boolean
 }
 
 const DEFAULT_MAX_DEPTH = 3
@@ -58,11 +59,16 @@ const VCS_METADATA_DIRS = new Set(['.git', '.svn', '.hg', '.jj', '.sl', '.repo',
 
 export function normalizeNestedRepoScanOptions(options: unknown): NormalizedNestedRepoScanOptions {
   const raw = options && typeof options === 'object' ? (options as NestedRepoScanOptions) : {}
+  const insideGitRepo = raw.insideGitRepo === true
   return {
+    insideGitRepo,
+    // VS Code looks one level below the workspace root for nested repos.
     maxDepth:
       typeof raw.maxDepth === 'number' && Number.isFinite(raw.maxDepth)
         ? Math.max(1, Math.min(8, Math.floor(raw.maxDepth)))
-        : DEFAULT_MAX_DEPTH,
+        : insideGitRepo
+          ? 1
+          : DEFAULT_MAX_DEPTH,
     maxRepos:
       typeof raw.maxRepos === 'number' && Number.isFinite(raw.maxRepos)
         ? Math.max(1, Math.min(500, Math.floor(raw.maxRepos)))
@@ -76,7 +82,7 @@ export function normalizeNestedRepoScanOptions(options: unknown): NormalizedNest
   }
 }
 
-function shouldSkipDirectory(name: string, depth: number): boolean {
+export function shouldSkipDirectory(name: string, depth: number): boolean {
   if (VCS_METADATA_DIRS.has(name)) {
     return true
   }

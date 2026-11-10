@@ -28,6 +28,8 @@ export type NestedRepoScanOptions = {
   maxDepth?: number
   maxRepos?: number
   timeoutMs?: number | null
+  /** Scan inside a Git repo for independent repos (VS Code-style), including ones its .gitignore lists. */
+  insideGitRepo?: boolean
 }
 
 export type NestedRepoCandidate = {

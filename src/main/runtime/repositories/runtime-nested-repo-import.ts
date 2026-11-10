@@ -41,13 +41,16 @@ function sanitizeImportError(fallback: string, error: unknown): string {
 export class RuntimeNestedRepoImport {
   constructor(private readonly deps: RuntimeNestedRepoImportDependencies) {}
 
-  async scan(path: string): Promise<NestedRepoScanResult> {
+  async scan(
+    path: string,
+    options: { insideGitRepo?: boolean } = {}
+  ): Promise<NestedRepoScanResult> {
     if (!isAbsolute(path)) {
       throw new Error('Project path must be an absolute path')
     }
     await refuseWslHostWindowsDrivePath(path)
     await awaitWindowsHostGitEnvironmentReady({ cwd: path })
-    return scanNestedRepos({ path, options: { timeoutMs: 15_000 } })
+    return scanNestedRepos({ path, options: { timeoutMs: 15_000, ...options } })
   }
 
   async import(args: {
