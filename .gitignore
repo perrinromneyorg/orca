@@ -34,6 +34,8 @@ native/windows-registry/bin/
 native/windows-security/build/
 native/windows-security/bin/
 .build/windows-security/
+.build/windows-process-tree/
+.build/windows-cli-launcher/
 
 .pnpm-store/
 package-lock.json
