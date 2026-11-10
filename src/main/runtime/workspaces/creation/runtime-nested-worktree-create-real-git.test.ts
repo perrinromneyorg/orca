@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, realpath, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { z } from 'zod'
 import type { Repo } from '../../../../shared/repo-types'
 import { gitExecFileAsync } from '../../../git/command-runner/git-exec-file'
 import { addWorktree } from '../../../git/worktrees/creation/worktree-add'
@@ -29,7 +30,11 @@ async function initRepo(path: string, hooks: string): Promise<void> {
   await git(path, 'commit', '--quiet', '--allow-empty', '-m', 'base')
 }
 
-async function createChild(apiPath: string, workspaceRoot: string, params: object) {
+async function createChild(
+  apiPath: string,
+  workspaceRoot: string,
+  params: z.input<typeof WorktreeCreate>
+) {
   const repo: Repo = { id: 'api', path: apiPath, displayName: 'api', badgeColor: '', addedAt: 0 }
   const request = buildManagedWorktreeCreateArgs(WorktreeCreate.parse(params), {})
   const settings = { workspaceDir: workspaceRoot, nestWorkspaces: false, branchPrefix: '' }

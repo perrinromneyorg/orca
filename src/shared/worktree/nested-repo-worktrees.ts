@@ -5,7 +5,10 @@ import type { Repo } from '../repo-types'
 import type { Worktree } from './types'
 
 export type NestedRepo = { repo: Repo; relativePath: string }
-export type NestedWorktree = { worktree: Worktree; relativePath: string }
+export type NestedWorktree<W extends Pick<Worktree, 'path'> = Worktree> = {
+  worktree: W
+  relativePath: string
+}
 
 function toPosixRelativePath(relativePath: string): string {
   return relativePath.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '')
@@ -46,12 +49,12 @@ export function getNestedRepos(container: Repo, repos: readonly Repo[]): NestedR
 }
 
 /** Other repos' worktrees checked out inside this worktree: a container's main checkout or a worktree Orca nested into it. */
-export function getNestedWorktrees(
-  container: Pick<Worktree, 'id' | 'repoId' | 'path'>,
+export function getNestedWorktrees<W extends Pick<Worktree, 'path'>>(
+  container: Pick<Worktree, 'path'>,
   nestedRepos: readonly NestedRepo[],
-  worktreesByRepo: Readonly<Record<string, readonly Worktree[]>>
-): NestedWorktree[] {
-  const nested: NestedWorktree[] = []
+  worktreesByRepo: Readonly<Record<string, readonly W[]>>
+): NestedWorktree<W>[] {
+  const nested: NestedWorktree<W>[] = []
   for (const { repo } of nestedRepos) {
     for (const worktree of worktreesByRepo[repo.id] ?? []) {
       const relativePath = relativePathInsideRoot(container.path, worktree.path)

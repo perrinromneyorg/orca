@@ -56,6 +56,7 @@ export const FLAG_HELP_TEXT: Record<string, string> = {
   'mouse-button': '--mouse-button <btn>   Mouse button: left, right, or middle',
   modifiers: '--modifiers <chord>  Modifier keys held only for this click',
   name: '--name <name>          Name for the new worktree or automation',
+  nested: '--nested <repos>       Nested repos to check out: all, none, or paths/names',
   'no-parent': '--no-parent            Force no parent lineage for unrelated work',
   'no-screenshot': '--no-screenshot       Skip screenshot capture after the operation',
   pages: '--pages <n>           Number of scroll pages',

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { useAppStore } from '@/store'
 import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
 import { runtimeTargetForRepoOwner } from '@/lib/workspace/ownership/repo-runtime-owner'
@@ -37,10 +38,20 @@ async function scanInsideRepo(repo: Repo): Promise<string[]> {
 }
 
 /** Git repos inside the container's checkout that Orca doesn't track yet; scanned once per session. */
+/** One scan per repo row per session; a new row object for the same repo reuses it. */
+function cachedScan(container: Repo): Promise<string[]> {
+  const key = scanKey(container)
+  let scan = scansByRepo.get(key)
+  if (!scan) {
+    scan = scanInsideRepo(container).catch(() => [])
+    scansByRepo.set(key, scan)
+  }
+  return scan
+}
+
 export function useUnregisteredNestedRepos(
   container: Repo | null,
-  repos: readonly Repo[],
-  refreshToken: number
+  repos: readonly Repo[]
 ): UnregisteredNestedRepo[] {
   const [found, setFound] = useState<{ key: string; paths: string[] } | null>(null)
   const key = container ? scanKey(container) : null
@@ -49,15 +60,7 @@ export function useUnregisteredNestedRepos(
       return
     }
     let cancelled = false
-    if (refreshToken > 0) {
-      scansByRepo.delete(key)
-    }
-    let scan = scansByRepo.get(key)
-    if (!scan) {
-      scan = scanInsideRepo(container).catch(() => [])
-      scansByRepo.set(key, scan)
-    }
-    void scan.then((paths) => {
+    void cachedScan(container).then((paths) => {
       if (!cancelled) {
         setFound({ key, paths })
       }
@@ -65,9 +68,7 @@ export function useUnregisteredNestedRepos(
     return () => {
       cancelled = true
     }
-    // The container's identity is its key; a new row object for the same repo must not rescan.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, refreshToken])
+  }, [container, key])
   if (!container || !found || found.key !== key) {
     return []
   }
@@ -82,6 +83,22 @@ export function useUnregisteredNestedRepos(
       ? [{ path, relativePath: relativePath.replace(/\\/g, '/') }]
       : []
   })
+}
+
+/** Adds the repos and reports a failure as a toast; `onBusy` brackets the work. */
+export async function addNestedReposWithFeedback(
+  container: Repo,
+  nested: readonly UnregisteredNestedRepo[],
+  onBusy: (busy: boolean) => void
+): Promise<void> {
+  onBusy(true)
+  try {
+    await addNestedReposToOrca(container, nested)
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : String(error))
+  } finally {
+    onBusy(false)
+  }
 }
 
 /** Registers each nested repo as its own project on the container's host. */

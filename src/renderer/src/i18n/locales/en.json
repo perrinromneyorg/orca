@@ -14457,7 +14457,8 @@
             "markResolved": "Mark as resolved",
             "keepFile": "Keep file",
             "keepDeletion": "Keep deletion",
-            "refreshAll": "Refresh all"
+            "refreshAll": "Refresh all",
+            "removeNestedWorktree": "Remove nested worktree"
           },
           "SourceControlAgentActionDialog": {
             "8e856842d1": "Could not start the selected agent.",
@@ -18881,6 +18882,20 @@
           "createWorktree": "Create worktree",
           "created": "Created worktree {{name}} in {{repo}}",
           "createFailed": "Could not create a worktree in {{repo}}."
+        },
+        "NestedRepoDiscovery": {
+          "title_one": "{{count}} repository inside this repo",
+          "title_other": "{{count}} repositories inside this repo",
+          "adding": "Adding…",
+          "add": "Show their changes here",
+          "dismiss": "Dismiss"
+        },
+        "NestedRepoSourceControl": {
+          "add": "Add nested repo",
+          "count_one": "{{count}} repository",
+          "count_other": "{{count}} repositories",
+          "detached": "Check out a branch in {{name}} before adding nested repos.",
+          "createFailed": "Could not add {{repo}} to this workspace."
         }
       },
       "link": {
@@ -19618,6 +19633,11 @@
         "setting-global-off": "Folder trust is turned off in Agents settings, so agents always ask.",
         "keyword-trust": "trust",
         "keyword-hooks": "hooks"
+      },
+      "newWorkspace": {
+        "NestedRepos": {
+          "label": "Nested repos"
+        }
       }
     },
     "i18n": {

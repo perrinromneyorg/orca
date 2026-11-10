@@ -2,14 +2,14 @@ import type { SessionOptionValue } from '../../../../shared/native-chat/input/na
 import type { RuntimeTerminalCreate } from '../../../../shared/runtime-terminal-create-contract'
 import type { AgentLaunchPreferences } from '../../../../shared/agent-session/agent-session-host-authority'
 import type { CreateWorktreeArgs } from '../../../../shared/worktree/create-types'
-import type { WorktreeNestedIn } from '../../../../shared/worktree/types'
 import type {
   AutomationWorkspaceProvenance,
   CliWorkspaceProvenance,
   GitPushTarget,
   WorkspaceLinkedItem,
   WorkspaceAttachment,
-  Worktree
+  Worktree,
+  WorktreeNestedIn
 } from '../../../../shared/worktree/types'
 import type { TuiAgent } from '../../../../shared/agent-launch/catalog/tui-agent'
 import type { WorkspaceSource as WorkspaceCreateTelemetrySource } from '../../../../shared/workspace-source'

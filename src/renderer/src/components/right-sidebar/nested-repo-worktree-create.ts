@@ -135,6 +135,20 @@ export async function createNestedRepoWorktree(
   }
 }
 
+/** `onPending` brackets the create so the caller can disable its menu entry meanwhile. */
+export async function createNestedRepoWorktreeTracked(
+  container: Pick<Worktree, 'id' | 'branch' | 'displayName'>,
+  nested: NestedRepo,
+  onPending: (pending: boolean) => void
+): Promise<void> {
+  onPending(true)
+  try {
+    await createNestedRepoWorktree(container, nested)
+  } finally {
+    onPending(false)
+  }
+}
+
 /** Adds each picked nested repo in order; one failure leaves the container and the others in place. */
 export async function createNestedRepoWorktrees(
   container: Pick<Worktree, 'id' | 'branch' | 'displayName'>,

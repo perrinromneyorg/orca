@@ -15,6 +15,12 @@ export const WORKTREE_HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('./handlers/worktree.js')).WORKTREE_HANDLERS
   },
   {
+    name: 'worktree-add-nested',
+    keys: ['worktree add-nested'],
+    load: async () =>
+      (await import('./handlers/worktree-add-nested.js')).WORKTREE_ADD_NESTED_HANDLERS
+  },
+  {
     name: 'worktree-activate',
     keys: ['worktree activate'],
     load: async () => (await import('./handlers/worktree-activate.js')).WORKTREE_ACTIVATE_HANDLERS

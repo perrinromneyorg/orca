@@ -18,10 +18,11 @@ import {
 function pickNestedRepos(
   container: Repo,
   nestedRepos: NestedRepo[],
-  flag: string | undefined
+  flag: string | undefined,
+  fallback: NestedFallback
 ): NestedRepo[] {
   if (flag === undefined) {
-    return selectNestedReposForCreate(container, nestedRepos)
+    return fallback === 'all' ? nestedRepos : selectNestedReposForCreate(container, nestedRepos)
   }
   const value = flag.trim()
   if (value === 'none' || value === '') {
@@ -48,32 +49,59 @@ function pickNestedRepos(
   return picked
 }
 
-/** Checks the picked nested repos out inside the new container worktree, on its branch. */
-export async function createNestedRepoWorktreesForCli(
+/** Without --nested: a new worktree follows the app's saved pick; add-nested fills in everything missing. */
+type NestedFallback = 'saved' | 'all'
+
+export type NestedRepoAddOutcome = {
+  created: RuntimeWorktreeRecord[]
+  /** Already checked out at their path inside the container. */
+  present: string[]
+  failed: { relativePath: string; message: string }[]
+}
+
+const ALREADY_PRESENT = 'already exists in this workspace.'
+
+/** Checks the picked nested repos out inside the container worktree, on its branch. */
+export async function addNestedRepoWorktreesForCli(
   client: RuntimeClient,
   container: RuntimeWorktreeRecord,
   flags: Map<string, string | boolean>,
-  json: boolean
-): Promise<RuntimeWorktreeRecord[]> {
+  json: boolean,
+  fallback: NestedFallback
+): Promise<NestedRepoAddOutcome> {
+  const outcome: NestedRepoAddOutcome = { created: [], present: [], failed: [] }
   const nestedFlag = getOptionalStringFlag(flags, 'nested')
   if (nestedFlag?.trim() === 'none') {
-    return []
+    return outcome
   }
-  const { repos } = (await client.call<{ repos: Repo[] }>('repo.list', {})).result
+  // A create must not fail on the optional nested step unless the caller asked for it.
+  const repos = await client.call<{ repos?: Repo[] }>('repo.list', {}).then(
+    (response) => response.result.repos ?? [],
+    (error: unknown) => {
+      if (nestedFlag !== undefined) {
+        throw error
+      }
+      return [] as Repo[]
+    }
+  )
   const containerRepo = repos.find(
     (repo) =>
       repo.id === container.repoId &&
       (!container.hostId || getRepoExecutionHostId(repo) === container.hostId)
   )
   if (!containerRepo) {
-    return []
+    return outcome
   }
-  const picked = pickNestedRepos(containerRepo, getNestedRepos(containerRepo, repos), nestedFlag)
+  const picked = pickNestedRepos(
+    containerRepo,
+    getNestedRepos(containerRepo, repos),
+    nestedFlag,
+    fallback
+  )
   const branch = container.branch.replace(/^refs\/heads\//, '').trim()
   if (picked.length > 0 && !branch) {
-    throw new Error('The new worktree has no branch, so nested repos were not added.')
+    throw new Error('The worktree has no branch checked out, so nested repos were not added.')
   }
-  const created: RuntimeWorktreeRecord[] = []
   for (const nested of picked) {
     const create = (branchIntent: 'create-exact' | 'open-existing-v2') =>
       client.call<RuntimeWorktreeCreateResult>('worktree.create', {
@@ -92,20 +120,22 @@ export async function createNestedRepoWorktreesForCli(
         }
         throw error
       })
-      created.push(result.result.worktree)
+      outcome.created.push(result.result.worktree)
       if (!json) {
         console.log(`nested: ${nested.relativePath} -> ${result.result.worktree.path}`)
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (message.includes(ALREADY_PRESENT)) {
+        outcome.present.push(nested.relativePath)
+        continue
+      }
       // One nested repo failing leaves the container and the others in place.
-      console.error(
-        `warning: could not add nested repo ${nested.relativePath}: ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      )
+      outcome.failed.push({ relativePath: nested.relativePath, message })
+      console.error(`warning: could not add nested repo ${nested.relativePath}: ${message}`)
     }
   }
-  return created
+  return outcome
 }
 
 /** The create response with any nested checkouts beside the container's record (JSON callers read it there). */
@@ -115,11 +145,12 @@ export async function withNestedRepoWorktrees<T extends { result: RuntimeWorktre
   flags: Map<string, string | boolean>,
   json: boolean
 ): Promise<T> {
-  const nestedWorktrees = await createNestedRepoWorktreesForCli(
+  const { created: nestedWorktrees } = await addNestedRepoWorktreesForCli(
     client,
     created.result.worktree,
     flags,
-    json
+    json,
+    'saved'
   )
   return nestedWorktrees.length > 0 ? { ...created, nestedWorktrees } : created
 }

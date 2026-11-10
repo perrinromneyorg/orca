@@ -3,6 +3,7 @@ import { GLOBAL_FLAGS } from '../args'
 import { WORKTREE_LISTING_SCOPE_NOTES } from './worktree-listing-scope-notes'
 import { WORKTREE_CREATE_COMMAND_SPEC } from './worktree-create'
 import { WORKTREE_SET_COMMAND_SPEC } from './worktree-set'
+import { WORKTREE_ADD_NESTED_COMMAND_SPEC } from './worktree-add-nested'
 import { SERVE_COMMAND_SPECS } from './serve'
 import { REPO_COMMAND_SPECS } from './repo'
 import { TERMINAL_SEND_COMMAND_SPEC } from './terminal-send'
@@ -76,6 +77,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     examples: ['orca worktree current', 'orca worktree current --json']
   },
   WORKTREE_CREATE_COMMAND_SPEC,
+  WORKTREE_ADD_NESTED_COMMAND_SPEC,
   WORKTREE_SET_COMMAND_SPEC,
   {
     path: ['worktree', 'rm'],

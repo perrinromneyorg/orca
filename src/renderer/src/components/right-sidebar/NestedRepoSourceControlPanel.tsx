@@ -16,14 +16,15 @@ import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 import {
   getNestedRepos,
   getNestedWorktrees,
-  type NestedRepo
+  type NestedRepo,
+  type NestedWorktree
 } from '../../../../shared/worktree/nested-repo-worktrees'
 import type { Repo } from '../../../../shared/repo-types'
 import type { Worktree } from '../../../../shared/worktree/types'
 import { attachedWorktreeOwnerKey } from './folder-workspace-attached-worktrees'
 import type { SourceControlScope } from './source-control/panel/worktree-scope'
 import { SourceControlWorktreeCard } from './source-control-worktree-card'
-import { createNestedRepoWorktree } from './nested-repo-worktree-create'
+import { createNestedRepoWorktreeTracked } from './nested-repo-worktree-create'
 import SourceControl from './source-control/panel/SourceControl'
 import { isFolderRepo } from '../../../../shared/repo-kind'
 import { useUnregisteredNestedRepos } from './nested-repo-discovery'
@@ -66,8 +67,7 @@ export default function NestedRepoSourceControlPanel(): React.JSX.Element {
   )
   const unregistered = useUnregisteredNestedRepos(
     containerRepo && !isFolderRepo(containerRepo) ? containerRepo : null,
-    repos,
-    0
+    repos
   )
   const banner = containerRepo ? (
     <NestedRepoDiscoveryBanner container={containerRepo} unregistered={unregistered} />
@@ -103,7 +103,7 @@ function NestedRepoCards({
   container: Worktree
   containerRepo: Repo
   nestedRepos: readonly NestedRepo[]
-  nestedWorktrees: ReturnType<typeof getNestedWorktrees>
+  nestedWorktrees: NestedWorktree[]
   banner: React.ReactNode
 }): React.JSX.Element {
   const t = useTranslate()
@@ -124,18 +124,18 @@ function NestedRepoCards({
     const present = new Set(nestedWorktrees.map(({ relativePath }) => relativePath))
     return nestedRepos.filter((nested) => !present.has(nested.relativePath))
   }, [nestedRepos, nestedWorktrees])
-  const add = async (nested: NestedRepo): Promise<void> => {
-    setPendingRepoIds((current) => new Set(current).add(nested.repo.id))
-    try {
-      await createNestedRepoWorktree(container, nested)
-    } finally {
+  const add = (nested: NestedRepo): Promise<void> =>
+    createNestedRepoWorktreeTracked(container, nested, (pending) =>
       setPendingRepoIds((current) => {
         const next = new Set(current)
-        next.delete(nested.repo.id)
+        if (pending) {
+          next.add(nested.repo.id)
+        } else {
+          next.delete(nested.repo.id)
+        }
         return next
       })
-    }
-  }
+    )
   const refresh = (): void => {
     for (const refreshNow of refreshers) {
       refreshNow()

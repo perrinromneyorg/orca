@@ -7,6 +7,7 @@ import { getStoredRepoExecutionHostId } from '../workspaces/execution-host/repo-
 import type { BrowserWindow } from 'electron'
 import { existsSync } from 'node:fs'
 import { join as joinPath } from 'node:path'
+import { pathExists } from './shell-owned-path-target'
 import { resolveNestedWorktreePlacement } from '../../shared/worktree/nested-worktree-placement'
 import { randomUUID } from 'node:crypto'
 import type { Store } from '../persistence/loading-store/store'
@@ -1191,11 +1192,19 @@ async function performLocalWorktreeCreate(
   const nestedPlacement = args.nestedUnder
     ? resolveNestedWorktreePlacement(args.nestedUnder, joinPath)
     : null
-  if (
-    nestedPlacement &&
-    (!store.getRepo(nestedPlacement.containerRepoId) || !existsSync(nestedPlacement.containerPath))
-  ) {
-    throw new Error('The container workspace for this nested repo no longer exists.')
+  if (nestedPlacement) {
+    if (
+      !store.getRepo(nestedPlacement.containerRepoId) ||
+      !(await pathExists(nestedPlacement.containerPath))
+    ) {
+      throw new Error('The container workspace for this nested repo no longer exists.')
+    }
+    // The path is fixed by the container, so check it once instead of per name candidate.
+    if (await pathExists(nestedPlacement.worktreePath)) {
+      throw new WorktreeCreateCollisionError(
+        `"${nestedPlacement.relativePath}" already exists in this workspace.`
+      )
+    }
   }
 
   // Hook validation is ref-independent and can overlap required tracking-base refresh.
@@ -1301,11 +1310,6 @@ async function performLocalWorktreeCreate(
     if (nestedPlacement) {
       // A nested repo's path is fixed by its container; a suffixed sibling would break the mirrored layout.
       worktreePath = nestedPlacement.worktreePath
-      if (existsSync(worktreePath)) {
-        throw new WorktreeCreateCollisionError(
-          `"${nestedPlacement.relativePath}" already exists in this workspace.`
-        )
-      }
       return pathClaim.claim(worktreePath)
     }
     worktreePath = ensurePathWithinWorkspace(

@@ -114,7 +114,7 @@ export function registerRepoUpdateHandler(mainWindow: BrowserWindow, store: Stor
         }
       }
       if ('nestedWorktreeRepoIds' in updates && updates.nestedWorktreeRepoIds !== undefined) {
-        const v = updates.nestedWorktreeRepoIds as unknown
+        const v: unknown = updates.nestedWorktreeRepoIds
         if (!Array.isArray(v) || !v.every((e) => typeof e === 'string')) {
           delete updates.nestedWorktreeRepoIds
         }

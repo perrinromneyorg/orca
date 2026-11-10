@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { FolderGit2, X } from 'lucide-react'
-import { toast } from 'sonner'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
 import type { Repo } from '../../../../shared/repo-types'
-import { addNestedReposToOrca, type UnregisteredNestedRepo } from './nested-repo-discovery'
+import { addNestedReposWithFeedback, type UnregisteredNestedRepo } from './nested-repo-discovery'
 
 const dismissedContainers = new Set<string>()
 
@@ -22,16 +21,7 @@ export function NestedRepoDiscoveryBanner({
   if (unregistered.length === 0 || dismissed) {
     return null
   }
-  const add = async (): Promise<void> => {
-    setAdding(true)
-    try {
-      await addNestedReposToOrca(container, unregistered)
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : String(error))
-    } finally {
-      setAdding(false)
-    }
-  }
+  const add = (): Promise<void> => addNestedReposWithFeedback(container, unregistered, setAdding)
   return (
     <div className="mx-2 mt-2 flex items-start gap-2 rounded-md border border-border bg-muted/40 p-2.5 text-xs">
       <FolderGit2 className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />

@@ -9,8 +9,8 @@ function repo(id: string, path: string, extra: Partial<Repo> = {}): Repo {
   return { id, path, displayName: id, badgeColor: '', addedAt: 0, kind: 'git', ...extra }
 }
 
-function worktree(repoId: string, path: string): Worktree {
-  return { id: `${repoId}::${path}`, repoId, path } as Worktree
+function worktree(path: string): Pick<Worktree, 'path'> {
+  return { path }
 }
 
 describe('getNestedRepos', () => {
@@ -38,13 +38,9 @@ describe('getNestedWorktrees', () => {
     const container = repo('app', '/code/app')
     const api = repo('api', '/code/app/api')
     const nested = getNestedRepos(container, [container, api])
-    const containerWorktree = worktree('app', '/ws/task')
+    const containerWorktree = worktree('/ws/task')
     const result = getNestedWorktrees(containerWorktree, nested, {
-      api: [
-        worktree('api', '/code/app/api'),
-        worktree('api', '/ws/task/api'),
-        worktree('api', '/ws/other/api')
-      ]
+      api: [worktree('/code/app/api'), worktree('/ws/task/api'), worktree('/ws/other/api')]
     })
     expect(result.map((n) => [n.worktree.path, n.relativePath])).toEqual([['/ws/task/api', 'api']])
   })
