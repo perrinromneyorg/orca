@@ -77,11 +77,11 @@ export async function addNestedRepoWorktreesForCli(
   // A create must not fail on the optional nested step unless the caller asked for it.
   const repos = await client.call<{ repos?: Repo[] }>('repo.list', {}).then(
     (response) => response.result.repos ?? [],
-    (error: unknown) => {
+    (error: unknown): Repo[] => {
       if (nestedFlag !== undefined) {
         throw error
       }
-      return [] as Repo[]
+      return []
     }
   )
   const containerRepo = repos.find(
