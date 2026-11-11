@@ -42,6 +42,8 @@ type RepositoryUpdates = Partial<
     | 'kind'
     | 'symlinkPaths'
     | 'nestedWorktreeRepoIds'
+    | 'worktreeSections'
+    | 'worktreeSubgroupBy'
     | 'dictationTerms'
     | 'issueSourcePreference'
     | 'defaultJiraProject'

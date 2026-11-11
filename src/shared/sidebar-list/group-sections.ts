@@ -1,5 +1,5 @@
 import type { Repo } from '../repo-types'
-import type { WorktreeOccurrencePlan } from '../worktree-occurrence-plan'
+import type { WorktreeOccurrence, WorktreeOccurrencePlan } from '../worktree-occurrence-plan'
 import type { WorkspaceStatusDefinition, Worktree } from '../worktree/types'
 import type { ExecutionHostId } from '../execution-host'
 import { getWorkspaceStatusFromGroupKey } from '../workspace-statuses'
@@ -13,6 +13,11 @@ import {
   getProjectHeaderHostRepos
 } from './host-labels'
 import type { OrderedGroupEntry, WorktreeGroupEntry } from './worktree-group-entry'
+import {
+  getOccurrenceRoot,
+  getProjectSubgroupLaneId,
+  planProjectSubgroupLanes
+} from './project-subgroups'
 import type { RenderableFolderWorkspace } from './folder-workspace-lanes'
 import type { ProjectGroupingIndex } from '../project-section-grouping'
 import {
@@ -212,14 +217,60 @@ export function appendOrderedGroups(
         groupBy === 'repo'
           ? getMixedHostContextLabels(group, repoMap, projectIndex, hostLabelById)
           : undefined
-      appendWorktreeRows(result, repoOf, occurrencePlan, {
+      const rowOptions = {
         collapsedGroups,
         groupDepth: projectGroupDepth,
         sectionKey: key,
         hostContextLabelByRepoId,
         hostContextLabelByWorktreeIdentity: mixedWorktreeHostContextLabels,
         folderPairByIdentity: ctx.folderPairByIdentity
-      })
+      }
+      if (groupBy !== 'repo' || !repo || !appendProjectSubgroupRows(ctx, key, repo, rowOptions)) {
+        appendWorktreeRows(result, repoOf, occurrencePlan, rowOptions)
+      }
     }
   }
+}
+
+/** Splits a project's rows into its section or status lanes; false when the project is unsplit. */
+function appendProjectSubgroupRows(
+  ctx: SectionAppendContext,
+  sectionKey: string,
+  repo: Repo,
+  rowOptions: Parameters<typeof appendWorktreeRows>[3]
+): boolean {
+  const occurrences = ctx.occurrencePlan.bySection.get(sectionKey) ?? []
+  const laneIdOf = (occurrence: WorktreeOccurrence<Worktree>): string | null =>
+    getProjectSubgroupLaneId(repo, getOccurrenceRoot(occurrence), ctx.workspaceStatuses)
+  const countByLane = new Map<string | null, number>()
+  for (const occurrence of occurrences) {
+    const laneId = laneIdOf(occurrence)
+    countByLane.set(laneId, (countByLane.get(laneId) ?? 0) + 1)
+  }
+  const lanes = planProjectSubgroupLanes({
+    repo,
+    sectionKey,
+    occupiedLaneIds: new Set(countByLane.keys()),
+    workspaceStatuses: ctx.workspaceStatuses
+  })
+  if (!lanes) {
+    return false
+  }
+  for (const lane of lanes) {
+    if (lane.header) {
+      ctx.result.push({
+        ...lane.header,
+        count: countByLane.get(lane.laneId) ?? 0,
+        groupDepth: rowOptions.groupDepth
+      })
+      if (ctx.collapsedGroups.has(lane.header.key)) {
+        continue
+      }
+    }
+    appendWorktreeRows(ctx.result, ctx.repoOf, ctx.occurrencePlan, {
+      ...rowOptions,
+      includeOccurrence: (occurrence) => laneIdOf(occurrence) === lane.laneId
+    })
+  }
+  return true
 }

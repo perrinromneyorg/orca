@@ -7742,7 +7742,26 @@
           "running": "Running",
           "idle": "Idle"
         },
-        "projectOrderSaveFailed": "Could not save the complete project order"
+        "projectOrderSaveFailed": "Could not save the complete project order",
+        "worktreeSections": {
+          "actionsFor": "Section actions for {{name}}",
+          "renameItem": "Rename Section…",
+          "deleteItem": "Delete Section",
+          "newSection": "New Worktree Section…",
+          "groupBy": "Group Worktrees By",
+          "bySections": "Sections",
+          "byStatus": "Status",
+          "renameTitle": "Rename Section",
+          "newTitle": "New Section",
+          "description": "Sections group worktrees inside {{project}} in the sidebar.",
+          "nameLabel": "Section Name",
+          "rename": "Rename",
+          "create": "Create",
+          "submenu": "Section",
+          "none": "No Section",
+          "newWithWorktree": "New Section…",
+          "saveFailed": "Could not update worktree sections"
+        }
       },
       "shared": {
         "useDaemonActions": {

@@ -5,7 +5,7 @@ import type { HostSectionRow } from '../../../../../../shared/sidebar-list/host-
 export function collectRenderedSidebarRowKeys(sectionRows: readonly HostSectionRow[]): Set<string> {
   const keys = new Set<string>()
   for (const row of sectionRows) {
-    if (row.type === 'header') {
+    if (row.type === 'header' || row.type === 'subgroup-header') {
       keys.add(row.key)
     } else if (row.type === 'item') {
       keys.add(row.rowKey)

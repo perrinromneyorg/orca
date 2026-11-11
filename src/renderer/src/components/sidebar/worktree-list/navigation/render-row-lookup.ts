@@ -18,7 +18,7 @@ import type { PinnedWorktreeDisplayPolicy } from '../../../../../../shared/sideb
 import { isPinnedWorktreeRow, type WorktreeItemRow } from '../listing/renderable-rows'
 
 export function getRenderRowSidebarKey(row: RenderRow): string | null {
-  if (row.type === 'header') {
+  if (row.type === 'header' || row.type === 'subgroup-header') {
     return row.key
   }
   if (row.type === 'item') {

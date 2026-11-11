@@ -101,6 +101,12 @@ export function serializeSidebarRow(
         field('path', row.occurrence ? sectionPath(row.occurrence) : undefined),
         field('parent', row.occurrence?.parent?.key)
       ])
+    case 'subgroup-header':
+      return line('SUBGROUP', [
+        field('key', row.key),
+        field('label', JSON.stringify(row.label)),
+        field('count', row.count)
+      ])
     case 'pending-creation':
       return line('PENDING', [
         field('key', row.key),

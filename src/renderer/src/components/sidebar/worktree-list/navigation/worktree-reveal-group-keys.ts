@@ -19,6 +19,11 @@ import type {
 import { planSidebarRows } from '../../../../../../shared/sidebar-list/sidebar-row-plan'
 import type { SidebarLineageParentIdentities } from '../../../../../../shared/sidebar-list/worktree-lineage-projection'
 import { createSidebarPRGroupReader } from '../grouping/pr-group-key'
+import {
+  getOccurrenceRoot,
+  getProjectSubgroupKey,
+  getProjectSubgroupLaneId
+} from '../../../../../../shared/sidebar-list/project-subgroups'
 
 export function getWorktreeRevealCollapsedGroupKeys(args: {
   occurrencePlan?: WorktreeOccurrencePlan<Worktree>
@@ -79,6 +84,14 @@ export function getWorktreeRevealCollapsedGroupKeys(args: {
   while (ancestor) {
     keys.push(getWorktreeLineageGroupKey(ancestor.row))
     ancestor = ancestor.parent
+  }
+  const repo = args.repoMap.get(args.worktree.repoId)
+  const laneId =
+    args.groupBy === 'repo' && repo
+      ? getProjectSubgroupLaneId(repo, getOccurrenceRoot(occurrence), args.workspaceStatuses)
+      : null
+  if (laneId) {
+    keys.push(getProjectSubgroupKey(occurrence.sectionKey, laneId))
   }
   let path: typeof occurrence.sectionPath | undefined = occurrence.sectionPath
   while (path) {

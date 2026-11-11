@@ -11,6 +11,10 @@ import {
 import { OptionalFiniteNumber, OptionalString } from './rpc-param-primitives'
 import { editorFormatterSchema } from '../editor-formatter'
 import { normalizeDictationTerms } from '../dictation-dictionary'
+import {
+  normalizeWorktreeSections,
+  normalizeWorktreeSubgroupBy
+} from '../worktree/worktree-sections'
 
 export const RepoSourceControlAiOverrides = z
   .unknown()
@@ -59,6 +63,8 @@ export function createRepoUpdateSchema<T extends Readonly<Record<string, z.ZodTy
       kind: z.enum(['git', 'folder']).optional(),
       symlinkPaths: z.array(z.string()).optional(),
       nestedWorktreeRepoIds: z.array(z.string()).optional(),
+      worktreeSections: z.unknown().transform(normalizeWorktreeSections).optional(),
+      worktreeSubgroupBy: z.unknown().transform(normalizeWorktreeSubgroupBy).optional(),
       dictationTerms: z.unknown().transform(normalizeDictationTerms).optional(),
       issueSourcePreference: z.enum(['auto', 'upstream', 'origin']).optional(),
       defaultJiraProject: z.unknown().optional().transform(normalizeJiraProjectReference),

@@ -102,6 +102,8 @@ export class RepoUpdatePersistenceOperations {
         | 'executionHostId'
         | 'symlinkPaths'
         | 'nestedWorktreeRepoIds'
+        | 'worktreeSections'
+        | 'worktreeSubgroupBy'
         | 'dictationTerms'
         | 'issueSourcePreference'
         | 'defaultJiraProject'

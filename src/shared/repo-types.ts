@@ -40,6 +40,11 @@ export type WorktreeVisibilityDefaults = {
   sourcePreferences?: WorktreeVisibilitySourcePreferences
 }
 
+/** A named sidebar section; members are worktree paths so the assignment needs no worktree metadata. */
+export type WorktreeSection = { id: string; name: string; worktreePaths: string[] }
+
+export type WorktreeSubgroupBy = 'sections' | 'status'
+
 export type Repo = {
   id: string
   path: string
@@ -96,6 +101,10 @@ export type Repo = {
   symlinkPaths?: string[]
   /** Nested repos (by id) picked for the last container worktree create; preselected on the next one. */
   nestedWorktreeRepoIds?: string[]
+  /** Named sidebar sections for this project's worktrees. */
+  worktreeSections?: WorktreeSection[]
+  /** How the sidebar splits this project's worktrees; absent means by section. */
+  worktreeSubgroupBy?: WorktreeSubgroupBy
   /** Durable sidebar-only repo organization. Execution remains repo-scoped. */
   projectGroupId?: string | null
   /** User-authored ordering inside the project group or ungrouped bucket. */

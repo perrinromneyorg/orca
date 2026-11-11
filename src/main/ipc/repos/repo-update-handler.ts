@@ -21,6 +21,10 @@ import { normalizeDictationTerms } from '../../../shared/dictation-dictionary'
 import { invalidateAuthorizedRootsCache } from '../worktrees/removal/registered-worktree-roots-cache'
 import { notifyReposChanged } from './repos-changed-notification'
 import {
+  normalizeWorktreeSections,
+  normalizeWorktreeSubgroupBy
+} from '../../../shared/worktree/worktree-sections'
+import {
   assertWslMoveProjectWritable,
   isWslMoveSourceHost
 } from '../../persistence/moving-wsl-projects/wsl-move-scope-guard'
@@ -47,6 +51,8 @@ export function registerRepoUpdateHandler(mainWindow: BrowserWindow, store: Stor
             | 'kind'
             | 'symlinkPaths'
             | 'nestedWorktreeRepoIds'
+            | 'worktreeSections'
+            | 'worktreeSubgroupBy'
             | 'dictationTerms'
             | 'issueSourcePreference'
             | 'forkSyncMode'
@@ -117,6 +123,22 @@ export function registerRepoUpdateHandler(mainWindow: BrowserWindow, store: Stor
         const v: unknown = updates.nestedWorktreeRepoIds
         if (!Array.isArray(v) || !v.every((e) => typeof e === 'string')) {
           delete updates.nestedWorktreeRepoIds
+        }
+      }
+      if ('worktreeSections' in updates && updates.worktreeSections !== undefined) {
+        const sections = normalizeWorktreeSections(updates.worktreeSections)
+        if (sections) {
+          updates.worktreeSections = sections
+        } else {
+          delete updates.worktreeSections
+        }
+      }
+      if ('worktreeSubgroupBy' in updates && updates.worktreeSubgroupBy !== undefined) {
+        const subgroupBy = normalizeWorktreeSubgroupBy(updates.worktreeSubgroupBy)
+        if (subgroupBy) {
+          updates.worktreeSubgroupBy = subgroupBy
+        } else {
+          delete updates.worktreeSubgroupBy
         }
       }
       if ('dictationTerms' in updates) {

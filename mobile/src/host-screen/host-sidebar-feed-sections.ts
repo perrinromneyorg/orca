@@ -169,6 +169,15 @@ export function buildHostFeedSections(sources: HostFeedListSources): Section[] {
           data: []
         })
         break
+      case 'subgroup-header':
+        // The phone lists sections flat, so a project's lane names its project.
+        push({
+          ...hostSectionKeys(row.key, sectionHostId),
+          title: `${row.repo.displayName} · ${row.label}`,
+          count: row.count,
+          data: []
+        })
+        break
       case 'item': {
         // Local as the fallback, as the phone resolves its own rows: the desktop's focus is not an owner.
         const hostId = getWorktreeExecutionHostId(row.worktree, row.repo, LOCAL_EXECUTION_HOST_ID)

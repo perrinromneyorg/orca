@@ -50,6 +50,8 @@ export type RepoUpdate = Partial<
     | 'kind'
     | 'symlinkPaths'
     | 'nestedWorktreeRepoIds'
+    | 'worktreeSections'
+    | 'worktreeSubgroupBy'
     | 'dictationTerms'
     | 'issueSourcePreference'
     | 'defaultJiraProject'

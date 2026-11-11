@@ -188,6 +188,8 @@ export class RepoLifecycleOperations {
         | 'executionHostId'
         | 'symlinkPaths'
         | 'nestedWorktreeRepoIds'
+        | 'worktreeSections'
+        | 'worktreeSubgroupBy'
         | 'dictationTerms'
         | 'issueSourcePreference'
         | 'forkSyncMode'

@@ -36,6 +36,7 @@ import {
   type WorktreeItemRowContext
 } from './item-row'
 import { renderWorktreeSectionHeaderRow } from './SectionHeader'
+import { renderProjectSubgroupHeaderRow } from './ProjectSubgroupHeader'
 import type { SectionHeaderRowContext } from './section-header-row-context'
 import type { WorktreeRowDragState } from '../drag/row-state'
 import type { Translate } from '@/i18n/use-translate'
@@ -207,6 +208,17 @@ export function renderWorktreeVirtualRow(
 
   if (row.type === 'lineage-group') {
     return renderLineageGroupVirtualRow(ctx, row, vItem)
+  }
+
+  if (row.type === 'subgroup-header') {
+    return renderProjectSubgroupHeaderRow({
+      row,
+      vItem,
+      collapsed: ctx.header.collapsedGroups.has(row.key),
+      workspaceStatuses: ctx.workspaceStatuses,
+      onToggle: () => ctx.toggleGroupWithScrollAnchor(row.key),
+      measureVirtualRowElement: ctx.measureVirtualRowElement
+    })
   }
 
   if (row.type === 'imported-worktrees-card') {

@@ -24,6 +24,7 @@ import {
   WorktreeLineageSubMenu,
   WorktreeProjectGroupSubMenu
 } from './WorktreeContextMenuSubMenus'
+import { WorktreeSectionSubMenu } from '../../worktree-sections/WorktreeSectionSubMenu'
 import {
   WORKTREE_CONTEXT_MENU_SCOPE_ATTR,
   shouldIgnoreNestedWorktreeContextMenuScope,
@@ -204,6 +205,7 @@ export default function WorktreeContextMenuView({ model }: { model: WorktreeCont
               />
               <WorktreeCopySubMenu model={model} />
               <WorktreeLineageSubMenu model={model} />
+              <WorktreeSectionSubMenu repo={repo} worktree={worktree} disabled={isDeleting} />
               <WorktreeProjectGroupSubMenu model={model} />
             </>
           )}

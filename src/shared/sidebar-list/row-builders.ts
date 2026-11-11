@@ -77,9 +77,14 @@ export function appendWorktreeRows(
     hostContextLabelByWorktreeIdentity?: ReadonlyMap<string, string>
     /** Occurrences that are folder workspaces render as folder rows. */
     folderPairByIdentity?: ReadonlyMap<string, RenderableFolderWorkspace>
+    /** Draws only part of the section, e.g. one sub-lane of a project. */
+    includeOccurrence?: (occurrence: WorktreeOccurrence<Worktree>) => boolean
   }
 ): void {
-  const sectionOccurrences = plan.bySection.get(options.sectionKey) ?? []
+  const allSectionOccurrences = plan.bySection.get(options.sectionKey) ?? []
+  const sectionOccurrences = options.includeOccurrence
+    ? allSectionOccurrences.filter(options.includeOccurrence)
+    : allSectionOccurrences
   const childIdsByParent = new Map<string, string[]>()
   for (const occurrence of sectionOccurrences) {
     if (occurrence.parent) {

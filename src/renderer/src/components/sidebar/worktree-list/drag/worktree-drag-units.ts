@@ -21,6 +21,7 @@ type WorktreeDragUnitRow =
   | { type: 'imported-worktrees-card' }
   | { type: 'new-external-worktrees-inbox' }
   | { type: 'pending-creation' }
+  | { type: 'subgroup-header' }
   | { type: 'folder-workspace' }
 
 /** Unit members are host identities, matching getWorktreeDragGroups. */
@@ -50,6 +51,7 @@ export function getWorktreeDragUnitGroups(
       row.type === 'host-header' ||
       row.type === 'imported-worktrees-card' ||
       row.type === 'new-external-worktrees-inbox' ||
+      row.type === 'subgroup-header' ||
       row.type === 'pending-creation' ||
       row.type === 'folder-workspace'
     ) {

@@ -51,6 +51,20 @@ export type GroupHeaderRow = {
   worktreeIds?: readonly string[]
 }
 
+/** A named section or status lane inside one project's rows. */
+export type ProjectSubgroupHeaderRow = {
+  type: 'subgroup-header'
+  key: string
+  /** The project section this lane splits; its rows keep that section key. */
+  sectionKey: string
+  label: string
+  count: number
+  repo: Repo
+  icon: { kind: 'section' } | { kind: 'workspace-status'; status: WorkspaceStatus }
+  sectionId?: string
+  groupDepth: number
+}
+
 export type WorktreeRow = {
   occurrence?: WorktreeOccurrence<Worktree>
   type: 'item'
@@ -132,6 +146,7 @@ export type PendingCreationRef = { creationId: string; repoId: string }
 
 export type Row =
   | GroupHeaderRow
+  | ProjectSubgroupHeaderRow
   | WorktreeRow
   | ImportedWorktreesCardRow
   | NewExternalWorktreesInboxRow

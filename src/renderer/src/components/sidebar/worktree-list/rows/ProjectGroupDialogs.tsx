@@ -5,6 +5,7 @@ import type { AppState } from '@/store/types'
 import type { Repo } from '../../../../../../shared/repo-types'
 import { ProjectGroupNameDialog } from './ProjectGroupNameDialog'
 import { ProjectGroupDeleteDialog } from './ProjectGroupDeleteDialog'
+import { WorktreeSectionNameDialog } from '../../worktree-sections/WorktreeSectionNameDialog'
 import SuppressExternalWorktreeInboxDialog from '../listing/SuppressExternalWorktreeInboxDialog'
 import type { NewExternalWorktreesInboxActionState } from '../listing/new-external-worktrees-inbox-actions'
 import type { ProjectGroupDialogs } from './use-project-group-dialogs'
@@ -32,6 +33,7 @@ export function SidebarWorktreeListDialogs({
   const { nameDialog, setNameDialog, deleteDialog, setDeleteDialog } = dialogs
   return (
     <>
+      <WorktreeSectionNameDialog />
       <ProjectGroupNameDialog
         open={nameDialog !== null}
         title={

@@ -309,6 +309,8 @@ export function projectParityRows(
         ]
       case 'pending-creation':
         return [`PENDING ${row.key}`]
+      case 'subgroup-header':
+        return [`SUBGROUP ${row.key} label=${row.label} count=${row.count}`]
       // Desktop-only cards: the feed never carries detected worktrees (see exclusions).
       case 'imported-worktrees-card':
       case 'new-external-worktrees-inbox':

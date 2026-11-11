@@ -14,6 +14,7 @@ export const WORKTREE_SIDEBAR_VIRTUAL_ROW_GAP = 6
 const SECONDARY_GROUP_HEADER_TOP_MARGIN = 4
 const IMPORTED_WORKTREES_LINE_ROW_HEIGHT = 36
 const PENDING_CREATION_ROW_HEIGHT = 56
+const SUBGROUP_HEADER_ROW_HEIGHT = 24
 const FOLDER_WORKSPACE_ROW_HEIGHT = 64
 
 /** Remap anchors when first/last child changes flip a parent between plain and lineage-group keys without moving it. */
@@ -98,6 +99,9 @@ export function estimateRenderRowSize(
   }
   if (row?.type === 'pending-creation') {
     return PENDING_CREATION_ROW_HEIGHT
+  }
+  if (row?.type === 'subgroup-header') {
+    return SUBGROUP_HEADER_ROW_HEIGHT
   }
   if (row?.type === 'folder-workspace') {
     return FOLDER_WORKSPACE_ROW_HEIGHT
