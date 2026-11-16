@@ -1,7 +1,7 @@
-import { getRepoExecutionHostId } from '../execution-host'
-import { relativePathInsideRoot } from '../cross-platform-path'
-import { isFolderRepo } from '../repo-kind'
-import type { Repo } from '../repo-types'
+import { getRepoExecutionHostId } from '../execution-host/execution-host'
+import { relativePathInsideRoot } from '../file-access/cross-platform-path'
+import { isFolderRepo } from '../repository/repo-kind'
+import type { Repo } from '../repository/repo-types'
 import type { Worktree } from './types'
 
 export type NestedRepo = { repo: Repo; relativePath: string }

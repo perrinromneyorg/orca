@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FolderGit2, X } from 'lucide-react'
 import { useTranslate } from '@/i18n/use-translate'
 import { Button } from '@/components/ui/button'
-import type { Repo } from '../../../../shared/repo-types'
+import type { Repo } from '../../../../shared/repository/repo-types'
 import { addNestedReposWithFeedback, type UnregisteredNestedRepo } from './nested-repo-discovery'
 
 const dismissedContainers = new Set<string>()

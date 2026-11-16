@@ -4,9 +4,9 @@ import { createStore } from 'zustand/vanilla'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 import { findRepoForHost } from '@/store/repos/repo-host-identity'
-import { getRepoExecutionHostId } from '../../../../../shared/execution-host'
-import { createNonSecureContextUuid } from '../../../../../shared/non-secure-context-uuid'
-import type { Repo, WorktreeSubgroupBy } from '../../../../../shared/repo-types'
+import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
+import { createNonSecureContextUuid } from '../../../../../shared/identifiers/non-secure-context-uuid'
+import type { Repo, WorktreeSubgroupBy } from '../../../../../shared/repository/repo-types'
 import {
   assignWorktreeToSection,
   removeWorktreeSection,

@@ -3,10 +3,13 @@ import { toast } from 'sonner'
 import { useAppStore } from '@/store'
 import { callRuntimeRpc } from '@/runtime/rpc/calls/runtime-rpc-call'
 import { runtimeTargetForRepoOwner } from '@/lib/workspace/ownership/repo-runtime-owner'
-import { getRepoExecutionHostId, parseExecutionHostId } from '../../../../shared/execution-host'
-import { relativePathInsideRoot } from '../../../../shared/cross-platform-path'
-import type { NestedRepoScanResult } from '../../../../shared/project-group-types'
-import type { Repo } from '../../../../shared/repo-types'
+import {
+  getRepoExecutionHostId,
+  parseExecutionHostId
+} from '../../../../shared/execution-host/execution-host'
+import { relativePathInsideRoot } from '../../../../shared/file-access/cross-platform-path'
+import type { NestedRepoScanResult } from '../../../../shared/project/groups/project-group-types'
+import type { Repo } from '../../../../shared/repository/repo-types'
 
 export type UnregisteredNestedRepo = { path: string; relativePath: string }
 

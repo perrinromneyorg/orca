@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { join } from 'node:path'
-import type { Repo } from '../repo-types'
+import type { Repo } from '../repository/repo-types'
 import type { Worktree } from './types'
 import { getNestedRepos, getNestedWorktrees, withoutNestedRepoRows } from './nested-repo-worktrees'
 import { resolveNestedWorktreePlacement } from './nested-worktree-placement'

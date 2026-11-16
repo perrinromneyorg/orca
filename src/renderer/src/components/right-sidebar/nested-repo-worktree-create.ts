@@ -4,10 +4,13 @@ import { readIpcErrorDetail } from '@/runtime/errors/ipc-error'
 import { runtimeTargetSupportsCapability } from '@/runtime/rpc/compatibility/runtime-target-capability'
 import { runtimeRpcTargetForAuthorityKey } from '@/runtime/rpc/targets/runtime-client-target'
 import { useAppStore } from '@/store/index'
-import { getRepoExecutionHostId, type ExecutionHostId } from '../../../../shared/execution-host'
+import {
+  getRepoExecutionHostId,
+  type ExecutionHostId
+} from '../../../../shared/execution-host/execution-host'
 import { WORKTREE_CREATE_EXACT_NAME_TAKEN_CODE } from '../../../../shared/new-workspace/worktree-create-collision'
-import { hasRuntimeRpcErrorCode } from '../../../../shared/runtime-rpc-error-code'
-import { WORKTREE_CREATE_EXACT_NAME_RUNTIME_CAPABILITY } from '../../../../shared/worktree-runtime-capabilities'
+import { hasRuntimeRpcErrorCode } from '../../../../shared/remote-runtime/rpc/runtime-rpc-error-code'
+import { WORKTREE_CREATE_EXACT_NAME_RUNTIME_CAPABILITY } from '../../../../shared/remote-runtime/protocol/worktree-runtime-capabilities'
 import {
   getNestedRepos,
   selectNestedReposForCreate,

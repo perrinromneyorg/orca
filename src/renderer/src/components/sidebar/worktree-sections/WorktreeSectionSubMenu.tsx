@@ -10,10 +10,10 @@ import {
   DropdownMenuSubTrigger
 } from '@/components/ui/dropdown-menu'
 import { useTranslate } from '@/i18n/use-translate'
-import type { Repo } from '../../../../../shared/repo-types'
+import type { Repo } from '../../../../../shared/repository/repo-types'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import { findWorktreeSection } from '../../../../../shared/worktree/worktree-sections'
-import { isGitRepoKind } from '../../../../../shared/repo-kind'
+import { isGitRepoKind } from '../../../../../shared/repository/repo-kind'
 import { moveWorktreeToSection, openWorktreeSectionNameDialog } from './worktree-section-actions'
 
 const NO_SECTION = ''

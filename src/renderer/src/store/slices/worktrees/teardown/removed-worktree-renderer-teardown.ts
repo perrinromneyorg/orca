@@ -1,7 +1,7 @@
-import { retireRemovedWorktreeTerminalNotices } from '../../../terminals/terminal-notice-removal'
-import type { ExecutionHostId } from '../../../../../../shared/execution-host'
+import { retireRemovedWorktreeTerminalNotices } from '../../../terminals/retirement/terminal-notice-removal'
+import type { ExecutionHostId } from '../../../../../../shared/execution-host/execution-host'
 import type { WorktreeSliceGet, WorktreeSliceSet } from '../listing/worktree-slice-types'
-import type { WorktreeCatalogVersion } from '../../../../../../shared/worktree/catalog-version'
+import type { WorktreeCatalogVersion } from '../../../../../../shared/worktree/catalog/catalog-version'
 import { getRepoIdFromWorktreeId } from '../../../../../../shared/worktree/id'
 import { appliedWorktreeCatalogVersionPatch } from '../listing/worktree-catalog-version-state'
 import { cleanupEphemeralVmRuntimesForDeleted } from '@/runtime/ephemeral-vm/ephemeral-vm-runtime-cleanup'
@@ -17,7 +17,7 @@ import {
   flushPurgedWorkspaceEdits,
   type ConfirmedUnsavedDiscards
 } from './removed-workspace-unsaved-files'
-import { forgetDesktopCreatedServerTabsOf } from '@/lib/desktop-created-server-tabs'
+import { forgetDesktopCreatedServerTabsOf } from '@/store/workspace-layout/frames/desktop-created-server-tabs'
 import type { WorktreeStateBeforeRemoval } from './worktree-state-before-removal'
 
 /** After backend success: unregister browsers before other teardown, then dispose SSH relay only after terminals so mounted panes cannot hit a missing relay. */

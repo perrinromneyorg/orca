@@ -1,6 +1,6 @@
-import type { ExecutionHostId } from '../execution-host'
+import type { ExecutionHostId } from '../execution-host/execution-host'
 import type { TaskSourceContext } from '../work-items/task-source-context'
-import type { EphemeralVmCheckoutMode } from '../orca-yaml-hook-types'
+import type { EphemeralVmCheckoutMode } from '../workspace-setup/orca-yaml-hook-types'
 import type {
   AutomationWorkspaceProvenance,
   CliWorkspaceProvenance,
@@ -12,10 +12,17 @@ import type {
   WorktreeNestedIn
 } from './types'
 import type { TuiAgent } from '../agent-launch/catalog/tui-agent'
-import type { OrcaWorkspaceLayout } from '../global-settings-types'
-import type { DiffComment, MobileDiffReviewState } from '../diff-comment-types'
-import type { SmartTier } from '../sidebar-list/sort-stamps'
-import type { ExternalConversationLink } from '../external-conversation-link'
+import type { OrcaWorkspaceLayout } from './paths/orca-workspace-layout'
+import type { DiffComment, MobileDiffReviewState } from '../file-review/diff-comment-types'
+import type { SmartTier } from '../sidebar-list/sorting/sort-stamps'
+import type { ExternalConversationLink } from '../connectors/external-conversation-link'
+
+export type ArchivedCheckout = {
+  branch: string
+  archivedAt: number
+  /** isArchived before the archive, so a refused archive puts it back. */
+  wasArchived?: boolean
+}
 
 export type WorktreeMeta = {
   /** Immutable per-workspace-instance ID used to reject stale lineage after path reuse. */
@@ -55,6 +62,8 @@ export type WorktreeMeta = {
   linkedItems?: WorkspaceAttachment[]
   linkedTaskSourceContext?: TaskSourceContext | null
   isArchived: boolean
+  /** Set while archived with the checkout removed from disk; restore recreates it from this branch. */
+  archivedCheckout?: ArchivedCheckout
   isUnread: boolean
   isPinned: boolean
   sortOrder: number

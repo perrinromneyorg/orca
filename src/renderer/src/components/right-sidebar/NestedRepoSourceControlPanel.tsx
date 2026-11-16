@@ -12,21 +12,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { getRepoExecutionHostId } from '../../../../shared/execution-host'
+import { getRepoExecutionHostId } from '../../../../shared/execution-host/execution-host'
 import {
   getNestedRepos,
   getNestedWorktrees,
   type NestedRepo,
   type NestedWorktree
 } from '../../../../shared/worktree/nested-repo-worktrees'
-import type { Repo } from '../../../../shared/repo-types'
+import type { Repo } from '../../../../shared/repository/repo-types'
 import type { Worktree } from '../../../../shared/worktree/types'
-import { attachedWorktreeOwnerKey } from './folder-workspace-attached-worktrees'
+import { attachedWorktreeOwnerKey } from './folder-workspaces/folder-workspace-attached-worktrees'
 import type { SourceControlScope } from './source-control/panel/worktree-scope'
-import { SourceControlWorktreeCard } from './source-control-worktree-card'
+import { SourceControlWorktreeCard } from './folder-workspaces/source-control-worktree-card'
 import { createNestedRepoWorktreeTracked } from './nested-repo-worktree-create'
 import SourceControl from './source-control/panel/SourceControl'
-import { isFolderRepo } from '../../../../shared/repo-kind'
+import { isFolderRepo } from '../../../../shared/repository/repo-kind'
 import { useUnregisteredNestedRepos } from './nested-repo-discovery'
 import { NestedRepoDiscoveryBanner } from './NestedRepoDiscoveryBanner'
 

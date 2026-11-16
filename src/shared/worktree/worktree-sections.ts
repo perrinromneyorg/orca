@@ -1,5 +1,5 @@
 import { isRecord } from '../agent-status/child-work/agent-status-child-work-value-guards'
-import type { Repo, WorktreeSection, WorktreeSubgroupBy } from '../repo-types'
+import type { Repo, WorktreeSection, WorktreeSubgroupBy } from '../repository/repo-types'
 
 const SECTION_NAME_MAX_LENGTH = 80
 

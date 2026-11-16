@@ -1,5 +1,5 @@
 import type { RefObject } from 'react'
-import type { View } from 'react-native'
+import type { HostInstance } from 'react-native'
 import {
   Columns2,
   Folder,
@@ -9,16 +9,17 @@ import {
   SquareChevronRight
 } from 'lucide-react-native'
 import { MobileAgentSessionHistoryIcon } from '../agent-history/MobileAgentSessionHistoryIcon'
-import type { ActionSheetAction } from '../components/ActionSheetModal'
+import type { ActionSheetAction } from '../components/sheets/ActionSheetModal'
 import { PullDownMenu } from '../components/nav-bar/PullDownMenu'
 import { colors } from '../theme/mobile-theme'
 import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
 import { useMobileTranslation } from '../i18n/use-mobile-translation'
 import type { MobileSessionController } from './use-mobile-session-controller'
+import { getMobileNativeChatToggleActions } from './native-chat/conversation/mobile-native-chat-toggle-action'
 
 type Props = {
   controller: MobileSessionController
-  anchorRef: RefObject<View | null>
+  anchorRef: RefObject<HostInstance | null>
   /** A narrow sideways header also moves source control and New tab in here. */
   actionsCollapsed: boolean
 }
@@ -102,8 +103,15 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
       onPress: handleOpenQuickCommands
     }
   ]
-  const view: ActionSheetAction[] =
-    canSplitTerminals || terminalSplitActive
+  const view: ActionSheetAction[] = [
+    ...getMobileNativeChatToggleActions({
+      tab: controller.activeSessionTab,
+      isTabChatView: controller.nativeChatController.isTabChatView,
+      nativeChatTranscriptIsLocalReadable: controller.nativeChatTranscriptIsLocalReadable,
+      onClose: () => setShowHeaderMoreActions(false),
+      onToggle: controller.toggleTabChatView
+    }),
+    ...(canSplitTerminals || terminalSplitActive
       ? [
           {
             id: 'terminalLayout',
@@ -113,7 +121,8 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
             onPress: () => setShowTerminalLayout(true)
           }
         ]
-      : []
+      : [])
+  ]
   const tabs: ActionSheetAction[] = actionsCollapsed
     ? [
         {
