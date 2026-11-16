@@ -98,8 +98,9 @@ if [[ "$INSTALL" == 1 ]]; then
   mkdir -p "$HOME/AppImages/.icons" "$HOME/.local/share/applications"
   install -m 755 "$APPIMAGE" "$HOME/AppImages/orca.appimage"
   ICONS="$(mktemp -d)"
-  (cd "$ICONS" && "$APPIMAGE" --appimage-extract orca-ide.png >/dev/null)
-  install -m 644 "$ICONS/squashfs-root/orca-ide.png" "$HOME/AppImages/.icons/orca.png"
+  ICON_PATH=usr/share/icons/hicolor/512x512/apps/orca-ide.png
+  (cd "$ICONS" && "$APPIMAGE" --appimage-extract "$ICON_PATH" >/dev/null)
+  install -m 644 "$ICONS/squashfs-root/$ICON_PATH" "$HOME/AppImages/.icons/orca.png"
   rm -rf "$ICONS"
   cat >"$HOME/.local/share/applications/orca.desktop" <<EOF
 [Desktop Entry]
