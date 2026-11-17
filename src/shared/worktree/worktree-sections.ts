@@ -78,3 +78,19 @@ export function removeWorktreeSection(
 ): WorktreeSection[] {
   return sections.filter((section) => section.id !== sectionId)
 }
+
+/** Swaps a section with its neighbor; sections draw in array order. */
+export function moveWorktreeSection(
+  sections: readonly WorktreeSection[],
+  sectionId: string,
+  direction: -1 | 1
+): WorktreeSection[] {
+  const from = sections.findIndex((section) => section.id === sectionId)
+  const to = from + direction
+  if (from === -1 || to < 0 || to >= sections.length) {
+    return [...sections]
+  }
+  const next = [...sections]
+  ;[next[from], next[to]] = [next[to], next[from]]
+  return next
+}

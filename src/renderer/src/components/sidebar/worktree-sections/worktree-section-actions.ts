@@ -9,6 +9,7 @@ import { createNonSecureContextUuid } from '../../../../../shared/identifiers/no
 import type { Repo, WorktreeSubgroupBy } from '../../../../../shared/repository/repo-types'
 import {
   assignWorktreeToSection,
+  moveWorktreeSection,
   removeWorktreeSection,
   renameWorktreeSection
 } from '../../../../../shared/worktree/worktree-sections'
@@ -84,6 +85,13 @@ export async function deleteWorktreeSection(repo: Repo, sectionId: string): Prom
   const current = liveRepo(repo)
   await updateSectionFields(current, {
     worktreeSections: removeWorktreeSection(current.worktreeSections ?? [], sectionId)
+  })
+}
+
+export async function moveSection(repo: Repo, sectionId: string, direction: -1 | 1): Promise<void> {
+  const current = liveRepo(repo)
+  await updateSectionFields(current, {
+    worktreeSections: moveWorktreeSection(current.worktreeSections ?? [], sectionId, direction)
   })
 }
 

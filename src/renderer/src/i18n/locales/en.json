@@ -8212,6 +8212,8 @@
         "worktreeSections": {
           "actionsFor": "Section actions for {{name}}",
           "renameItem": "Rename Section…",
+          "moveUp": "Move Section Up",
+          "moveDown": "Move Section Down",
           "deleteItem": "Delete Section",
           "newSection": "New Worktree Section…",
           "groupBy": "Group Worktrees By",

@@ -1,5 +1,5 @@
 import React from 'react'
-import { ChevronDown, Ellipsis, Layers, Pencil, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronDown, Ellipsis, Layers, Pencil, Trash2 } from 'lucide-react'
 import type { VirtualItem } from '@tanstack/react-virtual'
 import { cn } from '@/lib/class-names'
 import { Button } from '@/components/ui/button'
@@ -7,6 +7,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { useTranslate } from '@/i18n/use-translate'
@@ -20,6 +21,7 @@ import { REPO_HEADER_ACTION_BUTTON_CLASS } from './repo-header-action-button-cla
 import { stopRepoHeaderMenuEvent } from './header-event-guards'
 import {
   deleteWorktreeSection,
+  moveSection,
   openWorktreeSectionNameDialog
 } from '../../worktree-sections/worktree-section-actions'
 
@@ -29,6 +31,8 @@ function SectionMenu({ row }: { row: ProjectSubgroupHeaderRow }): React.JSX.Elem
   if (!sectionId) {
     return null
   }
+  const sections = row.repo.worktreeSections ?? []
+  const index = sections.findIndex((section) => section.id === sectionId)
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
@@ -66,6 +70,21 @@ function SectionMenu({ row }: { row: ProjectSubgroupHeaderRow }): React.JSX.Elem
           <Pencil className="size-3.5" />
           {t('auto.components.sidebar.worktreeSections.renameItem', 'Rename Section…')}
         </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={index <= 0}
+          onSelect={() => void moveSection(row.repo, sectionId, -1)}
+        >
+          <ArrowUp className="size-3.5" />
+          {t('auto.components.sidebar.worktreeSections.moveUp', 'Move Section Up')}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={index === -1 || index >= sections.length - 1}
+          onSelect={() => void moveSection(row.repo, sectionId, 1)}
+        >
+          <ArrowDown className="size-3.5" />
+          {t('auto.components.sidebar.worktreeSections.moveDown', 'Move Section Down')}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
           onSelect={() => void deleteWorktreeSection(row.repo, sectionId)}
