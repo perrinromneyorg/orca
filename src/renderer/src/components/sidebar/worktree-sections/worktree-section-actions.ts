@@ -3,7 +3,6 @@ import { useStore } from 'zustand'
 import { createStore } from 'zustand/vanilla'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
-import { findRepoForHost } from '@/store/repos/repo-host-identity'
 import { getRepoExecutionHostId } from '../../../../../shared/execution-host/execution-host'
 import { createNonSecureContextUuid } from '../../../../../shared/identifiers/non-secure-context-uuid'
 import type { Repo, WorktreeSubgroupBy } from '../../../../../shared/repository/repo-types'
@@ -36,8 +35,14 @@ export function useWorktreeSectionNameDialog(): WorktreeSectionNameDialogState |
 
 // Menus capture a repo at render; read the live one so concurrent edits are not overwritten.
 function liveRepo(repo: Repo): Repo {
-  const state = useAppStore.getState()
-  return findRepoForHost(state.repos, repo.id, { hostId: getRepoExecutionHostId(repo) }) ?? repo
+  const hostId = getRepoExecutionHostId(repo)
+  return (
+    useAppStore
+      .getState()
+      .repos.find(
+        (candidate) => candidate.id === repo.id && getRepoExecutionHostId(candidate) === hostId
+      ) ?? repo
+  )
 }
 
 async function updateSectionFields(
