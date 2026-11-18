@@ -1,6 +1,7 @@
-import type { RefObject } from 'react'
+import { useContext, type RefObject } from 'react'
 import type { HostInstance } from 'react-native'
 import {
+  ALargeSmall,
   Columns2,
   Folder,
   GitBranch,
@@ -15,7 +16,7 @@ import { colors } from '../theme/mobile-theme'
 import { useMobileColorScheme } from '../theme/use-mobile-color-scheme'
 import { useMobileTranslation } from '../i18n/use-mobile-translation'
 import type { MobileSessionController } from './use-mobile-session-controller'
-import { getMobileNativeChatToggleActions } from './native-chat/conversation/mobile-native-chat-toggle-action'
+import { MobileSessionBotActionsContext } from './mobile-session-bot-actions-context'
 
 type Props = {
   controller: MobileSessionController
@@ -28,6 +29,7 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
   useMobileColorScheme()
   const t = useMobileTranslation()
   const {
+    isFolderWorkspaceRoute,
     isFloatingWorkspaceRoute,
     showHeaderMoreActions,
     setShowHeaderMoreActions,
@@ -38,11 +40,16 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
     canSplitTerminals,
     terminalSplitActive,
     setShowTerminalLayout,
+    setTextSizeSheet,
+    showNativeChat,
+    activeSessionTab,
     connState,
     createTabBusy,
     handleOpenNewTab,
-    handleOpenQuickCommands
+    handleOpenQuickCommands,
+    itemsOnPhone
   } = controller
+  const botActions = useContext(MobileSessionBotActionsContext)
   const tabActionsDisabled = createTabBusy || connState !== 'connected'
   const panels: ActionSheetAction[] = [
     ...(!isFloatingWorkspaceRoute
@@ -56,7 +63,8 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
           }
         ]
       : []),
-    ...(actionsCollapsed && !isFloatingWorkspaceRoute
+    // A bot's screen has no source control, even folded into ⋯.
+    ...(actionsCollapsed && !isFloatingWorkspaceRoute && !itemsOnPhone
       ? [
           {
             id: 'sourceControl',
@@ -94,23 +102,26 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
           }
         ]
       : []),
-    {
-      id: 'quickCommands',
-      label: t('session.header.quickCommands', 'Quick commands'),
-      icon: SquareChevronRight,
-      disabled: tabActionsDisabled,
-      closeBeforePress: true,
-      onPress: handleOpenQuickCommands
-    }
+    // Desktop hides quick commands where there is no repo to run them in.
+    ...(!isFolderWorkspaceRoute && !isFloatingWorkspaceRoute
+      ? [
+          {
+            id: 'quickCommands',
+            label: t('session.header.quickCommands', 'Quick commands'),
+            icon: SquareChevronRight,
+            disabled: tabActionsDisabled,
+            closeBeforePress: true,
+            onPress: handleOpenQuickCommands
+          }
+        ]
+      : [])
   ]
+  const textSizeSheet = showNativeChat
+    ? 'chat'
+    : activeSessionTab?.type === 'terminal'
+      ? 'terminal'
+      : null
   const view: ActionSheetAction[] = [
-    ...getMobileNativeChatToggleActions({
-      tab: controller.activeSessionTab,
-      isTabChatView: controller.nativeChatController.isTabChatView,
-      nativeChatTranscriptIsLocalReadable: controller.nativeChatTranscriptIsLocalReadable,
-      onClose: () => setShowHeaderMoreActions(false),
-      onToggle: controller.toggleTabChatView
-    }),
     ...(canSplitTerminals || terminalSplitActive
       ? [
           {
@@ -119,6 +130,17 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
             icon: Columns2,
             closeBeforePress: true,
             onPress: () => setShowTerminalLayout(true)
+          }
+        ]
+      : []),
+    ...(textSizeSheet
+      ? [
+          {
+            id: 'textSize',
+            label: t('session.header.textSize', 'Text size'),
+            icon: ALargeSmall,
+            closeBeforePress: true,
+            onPress: () => setTextSizeSheet(textSizeSheet)
           }
         ]
       : [])
@@ -139,7 +161,7 @@ export function MobileSessionHeaderMoreMenu({ controller, anchorRef, actionsColl
     <PullDownMenu
       visible={showHeaderMoreActions}
       anchorRef={anchorRef}
-      groups={[panels, view, tabs]}
+      groups={botActions.length > 0 ? [botActions, panels, view, tabs] : [panels, view, tabs]}
       onClose={() => setShowHeaderMoreActions(false)}
     />
   )
