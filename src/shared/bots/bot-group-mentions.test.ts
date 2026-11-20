@@ -53,6 +53,21 @@ describe('group draft audience', () => {
   })
 })
 
+describe('attached files', () => {
+  it('reads a leading file reference as data, not an unknown bot', () => {
+    const mentions = room({ kind: 'mentions' })
+    expect(botGroupAudience('@/tmp/shot.avif @Sage what is this?', mentions, bots)).toEqual([
+      'sage'
+    ])
+    expect(botGroupAudience('@"C:\\My Shots\\a.avif" hi', room({ kind: 'all' }), bots)).toEqual([
+      'scout',
+      'sage',
+      'code-scout'
+    ])
+    expect(() => botGroupAudience('@Scuot hi', mentions, bots)).toThrow(/unavailable/)
+  })
+})
+
 describe('group mention segments', () => {
   const names = bots.map((bot) => bot.name)
   const mentions = (text: string) =>
@@ -109,7 +124,7 @@ describe('everyone-like member names', () => {
     members: named.map((bot) => ({ botId: bot.id, sessionId: bot.id }))
   }
 
-  it('addresses a member whose name starts with Everyone, not the whole room', () => {
+  it('distinguishes @everyone from longer and ambiguous member names', () => {
     expect(botGroupAudience('@Everyone Helper review this', mentionsRoom, named)).toEqual([
       'helper'
     ])
@@ -117,9 +132,7 @@ describe('everyone-like member names', () => {
       'helper',
       'other'
     ])
-  })
 
-  it('refuses a member named exactly Everyone instead of broadcasting', () => {
     const exact = [{ id: 'everyone-bot', name: 'Everyone' }, named[1]]
     const exactRoom = {
       ...mentionsRoom,
