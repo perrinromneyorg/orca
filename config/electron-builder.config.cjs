@@ -111,6 +111,8 @@ const isWinAdhoc = process.env.ORCA_WIN_ADHOC === '1'
 const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
 const isMacRelease = process.env.ORCA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.ORCA_LINUX_ARM64_RELEASE === '1'
+// Unsigned builds published to the perrinromneyorg/orca fork's releases.
+const isForkRelease = process.env.ORCA_FORK_RELEASE === '1'
 const localBuildVersion =
   isMacRelease || isWinDevChannel ? undefined : process.env.ORCA_LOCAL_BUILD_VERSION
 const isHourlyChannel = isMacHourly || isWinHourly
@@ -623,11 +625,12 @@ module.exports = {
     // SignPath signs Windows installers after packaging, so set release publisherName explicitly.
     // Unsigned dev channels omit it or updater signature checks reject dev updates and return to stable.
     // Sign hook signs nothing: it relays transient NSIS uninstaller files to CI SignPath; unset relay env leaves local/dev builds inert.
+    // Fork releases are unsigned like dev channels, so they omit publisherName and signature checks too.
     signtoolOptions: {
       sign: signWindowsUninstallerViaSignPath,
-      ...(isWinDevChannel ? {} : { publisherName: 'SignPath Foundation' })
+      ...(isWinDevChannel || isForkRelease ? {} : { publisherName: 'SignPath Foundation' })
     },
-    ...(isWinDevChannel ? { verifyUpdateCodeSignature: false } : {}),
+    ...(isWinDevChannel || isForkRelease ? { verifyUpdateCodeSignature: false } : {}),
     extraResources: [
       ...commonExtraResources,
       ...windowsRuntimeResources,
@@ -855,7 +858,7 @@ module.exports = {
   npmRebuild: true,
   publish: {
     provider: 'github',
-    owner: 'stablyai',
+    owner: isForkRelease ? 'perrinromneyorg' : 'stablyai',
     repo: devChannelRepo ?? 'orca',
     // Keep main-repo releases draft until release-cut verifies all assets; early --publish always would expose missing Windows installers.
     releaseType: devChannelRepo ? 'prerelease' : 'draft'

@@ -1,4 +1,8 @@
-import { app } from 'electron'
+import { app, shell } from 'electron'
+import {
+  APP_RELEASES_ARE_UPSTREAM,
+  getReleaseNotesUrlForVersion
+} from '../../../shared/updater/release-channel'
 import {
   beginMacUpdateDownload,
   deferMacQuitUntilInstallerReady,
@@ -17,6 +21,9 @@ import {
 import { UpdaterRequiredRestart } from './updater-required-restart'
 import { prepareThisProcessShipItStaging } from '../mac-install/shipit-leftover-recovery'
 import type { UpdateInstallTrigger } from './updater-state'
+
+// Fork Mac builds are unsigned, and Squirrel.Mac rejects unsigned updates; users install the DMG themselves.
+const updatesInstallManually = process.platform === 'darwin' && !APP_RELEASES_ARE_UPSTREAM
 
 export abstract class UpdaterDownloadInstall extends UpdaterRequiredRestart {
   private macStagingTimer: ReturnType<typeof setTimeout> | null = null
@@ -172,6 +179,7 @@ export abstract class UpdaterDownloadInstall extends UpdaterRequiredRestart {
   private canDownloadAutomatically(version: string): boolean {
     return (
       app.isPackaged &&
+      !updatesInstallManually &&
       this.getAutomaticUpdates?.() === true &&
       this.implicitInstallOnQuit &&
       this.automaticDownloadOfferVersion === version &&
@@ -218,6 +226,12 @@ export abstract class UpdaterDownloadInstall extends UpdaterRequiredRestart {
         version,
         retryable: false
       })
+      return
+    }
+    if (updatesInstallManually) {
+      if (!automatic) {
+        void shell.openExternal(getReleaseNotesUrlForVersion(version))
+      }
       return
     }
     if (this.deferHeadlessServeInstall('download', version)) {

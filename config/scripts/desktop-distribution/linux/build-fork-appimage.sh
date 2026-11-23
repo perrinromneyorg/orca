@@ -8,7 +8,7 @@
 #
 # Usage: config/scripts/desktop-distribution/linux/build-fork-appimage.sh [--version X.Y.Z]
 #          [--release-run <run-id>] [--install] [--skip-desktop-build]
-#   --version             App version to stamp (default: latest upstream release + 1 patch, so the
+#   --version             App version to stamp (default: newest upstream or fork release + 1 patch, so the
 #                         updater doesn't offer that release over this build). package.json is restored.
 #   --release-run         Upstream run to take native slots from (default: newest successful Cut Release).
 #   --install             Copy to ~/AppImages/orca.appimage and write the desktop entry.
@@ -17,6 +17,7 @@
 set -euo pipefail
 
 UPSTREAM=stablyai/orca
+FORK=perrinromneyorg/orca
 VERSION=''
 RUN_ID=''
 INSTALL=0
@@ -47,8 +48,10 @@ export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 pnpm() { corepack pnpm "$@"; }
 
 if [[ -z "$VERSION" ]]; then
-  latest="$(gh release view -R "$UPSTREAM" --json tagName --jq .tagName)"
-  IFS=. read -r major minor patch <<<"${latest#v}"
+  upstream_latest="$(gh release view -R "$UPSTREAM" --json tagName --jq .tagName)"
+  fork_latest="$(gh release view -R "$FORK" --json tagName --jq .tagName 2>/dev/null || echo v0.0.0)"
+  latest="$(printf '%s\n%s\n' "${upstream_latest#v}" "${fork_latest#v}" | sort -V | tail -1)"
+  IFS=. read -r major minor patch <<<"$latest"
   VERSION="$major.$minor.$((patch + 1))"
 fi
 if [[ -z "$RUN_ID" ]]; then
@@ -89,7 +92,7 @@ rm -rf out/orcad-template
 pnpm build:orcad-template
 pnpm ensure:electron-runtime
 ORCA_REQUIRE_ORCAD_TEMPLATE=1 pnpm exec electron-builder \
-  --config config/electron-builder.config.cjs --linux AppImage --x64
+  --config config/electron-builder.config.cjs --linux AppImage --x64 --publish never
 APPIMAGE="$ROOT/dist/orca-linux.AppImage"
 echo "== Built $APPIMAGE ($VERSION)"
 

@@ -6,6 +6,7 @@ import {
 } from './mac-install/updater-mac-install'
 import { compareVersions } from './releases/updater-fallback'
 import { fetchChangelog } from './releases/updater-changelog'
+import { APP_RELEASES_ARE_UPSTREAM } from '../../shared/updater/release-channel'
 import { getUnsupportedSystemUpdate } from './releases/updater-system-requirement'
 import type { UpdaterHandlerContext } from './updater-handler-context'
 import { recordUpdaterLifecycle } from './updater-lifecycle-diagnostics'
@@ -136,7 +137,7 @@ export function registerAutoUpdaterHandlers({
     void (async () => {
       try {
         const changelog =
-          isLocalBuildCheck() || isPinnedBuildCheck()
+          isLocalBuildCheck() || isPinnedBuildCheck() || !APP_RELEASES_ARE_UPSTREAM
             ? null
             : await fetchChangelog(info.version, app.getVersion()).catch(() => null)
 

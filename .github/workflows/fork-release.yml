@@ -1,0 +1,253 @@
+name: Fork Release
+
+# Build unsigned Linux, Windows and macOS packages of this fork and publish them as one GitHub
+# release here, which is the only feed fork builds update from (APP_RELEASE_REPO).
+# Native orcad slots come from upstream's newest successful Cut Release run, as in
+# config/scripts/desktop-distribution/linux/build-fork-appimage.sh.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version without the leading v (default = newest of upstream/fork release + 1 patch)
+        required: false
+        type: string
+      release_run:
+        description: Upstream stablyai/orca Cut Release run for native slots (default = newest successful)
+        required: false
+        type: string
+
+concurrency:
+  group: fork-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  UPSTREAM: stablyai/orca
+  ORCA_FORK_RELEASE: '1'
+  ORCA_REQUIRE_ORCAD_TEMPLATE: '1'
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      release_run: ${{ steps.resolve.outputs.release_run }}
+    steps:
+      - name: Resolve version and upstream run
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_ARTIFACTS_TOKEN || secrets.GITHUB_TOKEN }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_RUN: ${{ inputs.release_run }}
+        run: |
+          set -euo pipefail
+          version="$INPUT_VERSION"
+          if [ -z "$version" ]; then
+            upstream="$(gh release view -R "$UPSTREAM" --json tagName --jq .tagName)"
+            fork="$(gh release view -R "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null || echo v0.0.0)"
+            newest="$(printf '%s\n%s\n' "${upstream#v}" "${fork#v}" | sort -V | tail -1)"
+            IFS=. read -r major minor patch <<<"$newest"
+            version="$major.$minor.$((patch + 1))"
+          fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version $version must be X.Y.Z"
+            exit 1
+          fi
+          if gh release view "v$version" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release v$version already exists"
+            exit 1
+          fi
+          run="$INPUT_RUN"
+          if [ -z "$run" ]; then
+            run="$(gh run list -R "$UPSTREAM" --workflow release-cut.yml --status success --limit 1 \
+              --json databaseId --jq '.[0].databaseId')"
+          fi
+          echo "version=$version" >>"$GITHUB_OUTPUT"
+          echo "release_run=$run" >>"$GITHUB_OUTPUT"
+          echo "Fork release v$version with native slots from $UPSTREAM run $run" >>"$GITHUB_STEP_SUMMARY"
+
+  linux:
+    needs: prepare
+    # ubuntu-latest's newer GCC defaults to x86-64-v3 and ships AVX in node-pty (upstream #41637).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/setup@v2
+        with:
+          install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          check-latest: true
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+      # pnpm's bundled node-gyp is not executable on Linux runners.
+      - name: Use external node-gyp
+        run: |
+          npm install -g node-gyp@11.5.0
+          echo "npm_config_node_gyp=$(npm root -g)/node-gyp/bin/node-gyp.js" >> "$GITHUB_ENV"
+      - name: Install Linux packaging dependencies
+        run: sudo apt-get update && sudo apt-get install -y python3-gi gir1.2-atspi-2.0 at-spi2-core xclip xdotool rpm
+      - name: Build AppImage and orcad template
+        env:
+          GH_TOKEN: ${{ secrets.UPSTREAM_ARTIFACTS_TOKEN || secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: >-
+          config/scripts/desktop-distribution/linux/build-fork-appimage.sh
+          --version "${{ needs.prepare.outputs.version }}"
+          --release-run "${{ needs.prepare.outputs.release_run }}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: orcad-template
+          path: out/orcad-template
+          if-no-files-found: error
+          retention-days: 3
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-linux
+          path: |
+            dist/*.AppImage
+            dist/latest-linux*.yml
+          if-no-files-found: error
+          retention-days: 7
+
+  windows:
+    needs: [prepare, linux]
+    # windows-latest's VS 2026 image breaks node-gyp detection (upstream release-cut.yml).
+    runs-on: windows-2022
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/setup@v2
+        with:
+          install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          check-latest: true
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+      - name: Ensure the Rust toolchain for the Windows CLI launcher
+        shell: pwsh
+        run: |
+          if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+            rustup toolchain install stable --profile minimal
+            rustup default stable
+          }
+          cargo --version
+      - name: Stamp version
+        shell: bash
+        run: npm pkg set version="${{ needs.prepare.outputs.version }}"
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/install-mobile-dependencies
+      - name: Build app
+        shell: bash
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: pnpm run build:release
+      - uses: actions/download-artifact@v8
+        with:
+          name: orcad-template
+          path: out/orcad-template
+      - name: Package installer
+        shell: pwsh
+        env:
+          ORCA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
+        run: |
+          node config/scripts/native-build/node-addons/ensure-native-runtime.mjs --runtime=electron
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --win --publish never
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-windows
+          path: |
+            dist/*.exe
+            dist/*.exe.blockmap
+            dist/latest.yml
+          if-no-files-found: error
+          retention-days: 7
+
+  macos:
+    needs: [prepare, linux]
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/setup@v2
+        with:
+          install: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          check-latest: true
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+      - name: Stamp version
+        run: npm pkg set version="${{ needs.prepare.outputs.version }}"
+      # Both architectures ship, so install native packages for x64 and arm64.
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --cpu=current,x64,arm64
+      - uses: ./.github/actions/install-mobile-dependencies
+      - name: Build app
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: pnpm run build:release
+      - uses: actions/download-artifact@v8
+        with:
+          name: orcad-template
+          path: out/orcad-template
+      # No Developer ID: electron-builder ad-hoc signs, and the app opens the release page for updates.
+      - name: Package DMG and ZIP
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON config/scripts/orcad-distribution/prebuilds/pinned-node-downloads.mjs darwin-arm64 darwin-x64
+          node config/scripts/native-build/node-addons/ensure-native-runtime.mjs --runtime=electron
+          pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish never
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-macos
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.blockmap
+            dist/latest-mac.yml
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [prepare, linux, windows, macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: dist-*
+          path: assets
+          merge-multiple: true
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          ls -l assets
+          gh release create "v$VERSION" assets/* -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Orca $VERSION (fork)" \
+            --notes "Fork build of $GITHUB_SHA. Native slots from $UPSTREAM run ${{ needs.prepare.outputs.release_run }}.
+
+          Builds are unsigned. macOS: right-click Orca.app → Open the first time (or run \`xattr -cr /Applications/Orca.app\`); in-app updates open this page to download the new DMG. Windows: choose More info → Run anyway if SmartScreen warns."
