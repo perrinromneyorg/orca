@@ -7,11 +7,13 @@
 # (`build:orcad-prebuilds --require-slots`) fails if those prebuilds don't match this source.
 #
 # Usage: config/scripts/desktop-distribution/linux/build-fork-appimage.sh [--version X.Y.Z]
-#          [--release-run <run-id>] [--install] [--skip-desktop-build]
+#          [--release-run <run-id>] [--install] [--publish] [--skip-desktop-build]
 #   --version             App version to stamp (default: newest upstream or fork release + 1 patch, so the
 #                         updater doesn't offer that release over this build). package.json is restored.
 #   --release-run         Upstream run to take native slots from (default: newest successful Cut Release).
 #   --install             Copy to ~/AppImages/orca.appimage and write the desktop entry.
+#   --publish             Publish the AppImage and latest-linux.yml as release v<version> on the fork,
+#                         the feed fork builds update from. HEAD must be pushed to the fork first.
 #   --skip-desktop-build  Reuse out/ from an earlier run (only the orcad template and package are rebuilt).
 # Requires: gh (authenticated), corepack, git.
 set -euo pipefail
@@ -21,14 +23,16 @@ FORK=perrinromneyorg/orca
 VERSION=''
 RUN_ID=''
 INSTALL=0
+PUBLISH=0
 SKIP_DESKTOP=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --version) VERSION="$2"; shift 2 ;;
     --release-run) RUN_ID="$2"; shift 2 ;;
     --install) INSTALL=1; shift ;;
+    --publish) PUBLISH=1; shift ;;
     --skip-desktop-build) SKIP_DESKTOP=1; shift ;;
-    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
     *) echo "Unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -54,6 +58,15 @@ if [[ -z "$VERSION" ]]; then
   IFS=. read -r major minor patch <<<"$latest"
   VERSION="$major.$minor.$((patch + 1))"
 fi
+if [[ "$PUBLISH" == 1 ]]; then
+  git fetch -q fork
+  git merge-base --is-ancestor HEAD fork/main ||
+    { echo 'HEAD is not on fork/main; push it before publishing a release of it.' >&2; exit 1; }
+  ! gh release view "v$VERSION" -R "$FORK" >/dev/null 2>&1 ||
+    { echo "Release v$VERSION already exists on $FORK." >&2; exit 1; }
+fi
+# The packaged app-update.yml then names the fork's releases.
+export ORCA_FORK_RELEASE=1
 if [[ -z "$RUN_ID" ]]; then
   RUN_ID="$(gh run list -R "$UPSTREAM" --workflow release-cut.yml --status success --limit 1 \
     --json databaseId --jq '.[0].databaseId')"
@@ -123,4 +136,11 @@ EOF
   command -v update-desktop-database >/dev/null && update-desktop-database "$HOME/.local/share/applications" || true
   command -v xdg-mime >/dev/null && xdg-mime default orca.desktop x-scheme-handler/orca || true
   echo "== Installed $HOME/AppImages/orca.appimage; quit and reopen Orca to run it."
+fi
+
+if [[ "$PUBLISH" == 1 ]]; then
+  echo "== Publish v$VERSION to $FORK"
+  gh release create "v$VERSION" "$APPIMAGE" "$ROOT/dist/latest-linux.yml" -R "$FORK" \
+    --target "$(git rev-parse HEAD)" --title "Orca $VERSION (fork)" \
+    --notes "Fork build of $(git rev-parse --short HEAD). Native slots from $UPSTREAM run $RUN_ID."
 fi
