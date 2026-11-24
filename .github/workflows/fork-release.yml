@@ -217,6 +217,7 @@ jobs:
       - name: Package DMG and ZIP
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          ORCA_TERMINAL_HOST_BOOT_TIMEOUT_MS: '180000'
         run: |
           node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON config/scripts/orcad-distribution/prebuilds/pinned-node-downloads.mjs darwin-arm64 darwin-x64
           node config/scripts/native-build/node-addons/ensure-native-runtime.mjs --runtime=electron

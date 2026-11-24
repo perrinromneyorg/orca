@@ -52,7 +52,9 @@ function verifyPackagedDaemonEntryBoots(resourcesDir, options = {}) {
   console.log('[verify-packaged-daemon-entry] OK — packaged daemon-entry loads under plain Node')
 }
 
-const TERMINAL_HOST_BOOT_TIMEOUT_MS = 20_000
+// Small hosted Mac runners need longer for the first Rosetta translation of the x64 slice.
+const TERMINAL_HOST_BOOT_TIMEOUT_MS =
+  Number(process.env.ORCA_TERMINAL_HOST_BOOT_TIMEOUT_MS) || 20_000
 // Arithmetic so the shell echoing the typed command cannot satisfy the check.
 const TERMINAL_HOST_BOOT_COMMAND = 'echo "OK $((6*7))" && exit'
 const TERMINAL_HOST_BOOT_OUTPUT = 'OK 42'
