@@ -108,6 +108,8 @@ jobs:
         with:
           name: orcad-template
           path: out/orcad-template
+          # The template ships .claude-plugin/ manifests, which uploads skip by default.
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 3
       - uses: actions/upload-artifact@v7
