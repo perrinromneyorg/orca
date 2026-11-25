@@ -101,13 +101,20 @@ export const googleStatusRead = bindDeferredRpcOperation(
     read: rpcResultVariant(
       'google-status',
       z.looseObject({
-        client: z.looseObject({ clientId: z.string() }).nullable().optional(),
+        client: z
+          .looseObject({ clientId: z.string(), projectId: z.string().optional() })
+          .nullable()
+          .optional(),
+        // Absent from a host too old to keep a default.
+        defaultAccount: z.string().nullable().optional(),
         accounts: z
           .array(
             z.looseObject({
               email: z.string(),
               // `reconnect`: Google ended this sign-in.
               status: z.string().optional(),
+              // Google's own words for why it ended the sign-in.
+              googleError: z.string().optional(),
               services: z.array(
                 z.looseObject({
                   service: z.string(),
